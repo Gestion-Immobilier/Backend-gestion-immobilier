@@ -1,0 +1,47 @@
+server:
+  port: ${APP_PORT:8000}
+
+spring:
+  application:
+    name: Gestion-Immobilier-App
+  config:
+    import: optional:secrets.yml
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        batch_versioned_data: true
+        jdbc:
+          batch_size: 20
+
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:4MB}
+      max-request-size: ${MAX_REQUEST_SIZE:4MB}
+
+springdoc:
+  swagger-ui:
+    path: /docs
+    operationsSorter: alpha
+    doc-expansion: none
+
+logging.level.org.hibernate.SQL: DEBUG
+
+app:
+  name: "Gestion Immobilier Backend"
+  #  version: 1.0
+  description: Application de Gestion d'immobilier
+  security-scheme: Bearer Authentication
+  unsecured-tag: Login
+
+cors:
+  allowed:
+    origins: ${CORS_ORIGIN:http://localhost:4200}
+ssl-enabled: ${UPLOAD_SSL:false}
+
+minio:
+  url: ${MINIO_URL:http://127.0.0.1:9000}
+  bucket-temp: ${MINIO_BUCKET_TEMP:temp}
+  bucket-contrat: ${MINIO_BUCKET_DIPLOME:cnd-contrat}
+  bucket-quittance: ${MINIO_BUCKET_CIN:cnd-quittance}
