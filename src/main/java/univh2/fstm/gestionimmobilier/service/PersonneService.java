@@ -1,0 +1,64 @@
+package univh2.fstm.gestionimmobilier.service;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import univh2.fstm.gestionimmobilier.model.Personne;
+import univh2.fstm.gestionimmobilier.model.Type;
+import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
+
+import java.util.List;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class PersonneService {
+
+    private final PersonneRepository personneRepository;
+
+    // CRUD de base
+    public Personne ajouterPersonne(Personne personne) {
+        return personneRepository.save(personne);
+    }
+
+    public Personne modifierPersonne(Personne personne) {
+        return personneRepository.save(personne);
+    }
+
+    public void supprimerPersonne(Long id) {
+        personneRepository.deleteById(id);
+    }
+
+    public List<Personne> findAll() {
+        return personneRepository.findAll();
+    }
+
+    public Personne findById(Long id) {
+        return personneRepository.findById(id).orElse(null);
+    }
+
+    // Recherches par attributs
+    public Personne findByEmail(String email) {
+        return personneRepository.findByEmail(email);
+    }
+
+    public Personne findByPhone(String phone) {
+        return personneRepository.findByPhone(phone);
+    }
+
+    public List<Personne> findByAdresse(String adresse) {
+        return personneRepository.findByAdresse(adresse);
+    }
+
+    public List<Personne> findByType(Type type) {
+        return personneRepository.findByType(type);
+    }
+
+    public List<Personne> findByFirstName(String firstName) {
+        return personneRepository.findByFirstName(firstName);
+    }
+
+    public List<Personne> findByLastName(String lastName) {
+        return personneRepository.findByLastName(lastName);
+    }
+}
