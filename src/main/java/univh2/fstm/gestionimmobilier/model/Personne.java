@@ -1,5 +1,6 @@
 package univh2.fstm.gestionimmobilier.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 

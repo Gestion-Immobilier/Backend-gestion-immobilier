@@ -5,10 +5,11 @@ import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PersonneRepository extends JpaRepository<Personne, Long> {
     List<Personne> findByType(Type type);
-    Personne findByEmail(String email);
+    Optional<Personne> findByEmail(String email);
     Personne findByPhone(String phone);
     List<Personne> findByAdresse(String adresse);
     List<Personne> findByFirstName(String firstName);

@@ -2,6 +2,7 @@ package univh2.fstm.gestionimmobilier.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import univh2.fstm.gestionimmobilier.dto.PersonneDTO;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
 import univh2.fstm.gestionimmobilier.service.PersonneService;
@@ -17,7 +18,7 @@ public class PersonneController {
 
     // ----------------- CRUD -----------------
     @PostMapping
-    public Personne ajouterPersonne(@RequestBody Personne personne) {
+    public Personne ajouterPersonne(@RequestBody PersonneDTO personne) {
         return personneService.ajouterPersonne(personne);
     }
 
