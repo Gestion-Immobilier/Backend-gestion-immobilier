@@ -12,16 +12,12 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // Une clé de 32+ caractères (HS256)
     private static final String SECRET_KEY = "12345678901234567890123456789012";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ------------------------------
-    // 🔹 Génération du JWT
-    // ------------------------------
     public String generateToken(Personne user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -33,16 +29,10 @@ public class JwtService {
                 .compact();
     }
 
-    // ------------------------------
-    // 🔹 Extraire l'email (username)
-    // ------------------------------
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // ------------------------------
-    // 🔹 Extraire toutes les claims
-    // ------------------------------
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -51,18 +41,11 @@ public class JwtService {
                 .getBody();
     }
 
-    // ------------------------------
-    // 🔹 Vérifier si expiré
-    // ------------------------------
     public boolean isExpired(String token) {
         return extractAllClaims(token).getExpiration().before(new Date());
     }
 
-    // ------------------------------
-    // Vérifier validité du token avec UserDetails
     public boolean isTokenValid(String token, UserDetails userDetails) {
         return userDetails.getUsername().equals(extractEmail(token)) && !isExpired(token);
     }
-
-
 }

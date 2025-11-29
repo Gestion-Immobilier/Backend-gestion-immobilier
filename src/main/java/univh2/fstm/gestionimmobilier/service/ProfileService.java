@@ -8,6 +8,8 @@ import univh2.fstm.gestionimmobilier.dto.UpdateProfileRequest;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
@@ -46,4 +48,15 @@ public class ProfileService {
 
         repo.save(user);
     }
+    // ADMIN - voir tous les profils
+    public List<Personne> getAllProfiles() {
+        return repo.findAll();
+    }
+
+    // Supprimer son propre compte
+    public void deleteProfile(String email) {
+        Personne user = getProfile(email);
+        repo.delete(user);
+    }
+
 }
