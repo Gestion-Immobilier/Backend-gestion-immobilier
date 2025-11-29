@@ -8,17 +8,17 @@ spring:
     import: optional:secrets.yml
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
-        batch_versioned_data: true
-        jdbc:
-          batch_size: 20
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    url: jdbc:h2:mem:testDB
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/gestion_immobilier
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
 
   servlet:
     multipart:
@@ -26,10 +26,11 @@ spring:
       max-request-size: ${MAX_REQUEST_SIZE:4MB}
 
 springdoc:
+  api-docs:
+    path: /api-docs
   swagger-ui:
-    path: /docs
-    operationsSorter: alpha
-    doc-expansion: none
+    path: /swagger-ui.html
+    operations-sorter: method
 
 logging.level.org.hibernate.SQL: DEBUG
 

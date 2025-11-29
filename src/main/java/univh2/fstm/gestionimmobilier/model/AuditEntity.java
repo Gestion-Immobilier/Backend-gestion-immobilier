@@ -4,9 +4,8 @@ package univh2.fstm.gestionimmobilier.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -18,8 +17,9 @@ import java.sql.Timestamp;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @MappedSuperclass
-
+@SuperBuilder
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditEntity extends BaseEntity {
 
