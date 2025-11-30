@@ -14,4 +14,8 @@ public interface PersonneRepository extends JpaRepository<Personne, Long> {
     List<Personne> findByAdresse(String adresse);
     List<Personne> findByFirstName(String firstName);
     List<Personne> findByLastName(String lastName);
+    boolean existsByEmail(String email);
+
+    // ✅ Ajoute cette méthode
+    boolean existsByTypeAndEmail(Type type, String email);
 }
