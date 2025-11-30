@@ -7,7 +7,6 @@ import univh2.fstm.gestionimmobilier.model.Type;
 @Data
 @Builder
 public class ProfileResponse {
-    private Long id;
     private Type type;
     private String firstName;
     private String lastName;

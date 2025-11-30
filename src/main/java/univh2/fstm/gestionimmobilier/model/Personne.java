@@ -9,7 +9,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 public class Personne extends AuditEntity {
 
     @Enumerated(EnumType.STRING)
@@ -24,9 +23,19 @@ public class Personne extends AuditEntity {
     @Column(unique = true)
     private String phone;
 
-    private Boolean verified;
+    private Boolean verified = false; // PROPRIETAIRE → admin doit le valider
 
     private String adresse;
 
     private String password;
+
+    // Un locataire peut demander à devenir propriétaire
+    private Boolean demandeProprietaire = false;
+
+    @PrePersist
+    public void initDefaults() {
+        if (type == null) {
+            type = Type.LOCATAIRE; // Par défaut
+        }
+    }
 }

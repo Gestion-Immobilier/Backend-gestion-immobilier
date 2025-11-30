@@ -26,5 +26,5 @@ public class RegisterRequest {
     @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
     private String password;
 
-    private Type type; // optional: default LOCATAIRE si null
+    public Type type;//sera traiter dans le cote service
 }

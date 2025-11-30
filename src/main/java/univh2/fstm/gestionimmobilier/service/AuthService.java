@@ -31,16 +31,27 @@ public class AuthService {
         p.setEmail(request.getEmail());
         p.setPhone(request.getPhone());
         p.setAdresse(null);
-        p.setType(request.getType() != null ? request.getType() : Type.LOCATAIRE);
+
+        // --------- Sécurité sur le type ----------
+        if (request.getType() == Type.ADMIN) {
+            throw new RuntimeException("Vous ne pouvez pas créer un compte ADMIN");
+        }
+
+        if (request.getType() == Type.PROPRIETAIRE) {
+            p.setType(Type.PROPRIETAIRE);
+            p.setVerified(false); // ADMIN doit confirmer
+            p.setDemandeProprietaire(true);
+        }
+        else {
+            p.setType(Type.LOCATAIRE); // par défaut
+            p.setVerified(false);
+        }
+        // -----------------------------------------
 
         p.setPassword(passwordEncoder.encode(request.getPassword()));
-        p.setVerified(false);
-
         repo.save(p);
 
-        String token = jwtService.generateToken(p);
-
-        return new AuthResponse(token);
+        return new AuthResponse(jwtService.generateToken(p));
     }
 
     // LOGIN

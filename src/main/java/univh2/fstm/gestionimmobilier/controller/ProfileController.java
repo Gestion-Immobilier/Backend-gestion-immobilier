@@ -55,5 +55,32 @@ public class ProfileController {
         profileService.deleteProfile(auth.getName());
         return "Compte supprimé avec succès";
     }
+    @PreAuthorize("hasRole('LOCATAIRE')")
+    @PostMapping("/request-proprietaire")
+    public String demanderProprietaire(Authentication auth) {
+        profileService.demanderProprietaire(auth.getName());
+        return "Votre demande a été envoyée à l'administrateur.";
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/validate-proprietaire/{id}")
+    public String validerProprietaire(@PathVariable Long id) {
+        profileService.validerProprietaire(id);
+        return "Demande validée !";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/reject-proprietaire/{id}")
+    public String rejeterProprietaire(@PathVariable Long id) {
+        profileService.rejeterProprietaire(id);
+        return "Demande rejetée !";
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/approve-proprietaire/{userId}")
+    public String approuverProprietaire(@PathVariable Long userId) {
+        profileService.approuverProprietaire(userId);
+        return "Demande approuvée";
+    }
+
+
 
 }
