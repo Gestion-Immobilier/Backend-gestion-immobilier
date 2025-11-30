@@ -61,7 +61,7 @@ public class BienResponseDto {
 
     private Boolean ascenseur;
 
-    // Note : proprietaireNom sera ajouté quand ton binôme aura créé Proprietaire
-    // private String proprietaireNom;
-    // private UUID proprietaireId;
+    private Long proprietaireId;
+    private String proprietaireNom;
+    private String proprietaireEmail;
 }

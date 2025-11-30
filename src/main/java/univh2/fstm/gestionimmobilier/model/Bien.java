@@ -1,5 +1,6 @@
 package univh2.fstm.gestionimmobilier.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -111,4 +112,10 @@ public class Bien extends AuditEntity{
     @Column(name = "ascenseur")
     @Builder.Default
     private Boolean ascenseur = false;
+
+//les relations
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proprietaire_id", nullable = false)
+    @JsonIgnore
+    private Personne proprietaire;
 }
