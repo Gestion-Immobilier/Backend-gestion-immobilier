@@ -1,4 +1,4 @@
-package univh2.fstm.gestionimmobilier.service;
+package univh2.fstm.gestionimmobilier.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

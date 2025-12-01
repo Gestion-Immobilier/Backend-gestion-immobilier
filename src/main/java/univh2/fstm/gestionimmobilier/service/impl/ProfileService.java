@@ -1,10 +1,10 @@
-package univh2.fstm.gestionimmobilier.service;
+package univh2.fstm.gestionimmobilier.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import univh2.fstm.gestionimmobilier.dto.ChangePasswordRequest;
-import univh2.fstm.gestionimmobilier.dto.UpdateProfileRequest;
+import univh2.fstm.gestionimmobilier.dto.request.ChangePasswordRequest;
+import univh2.fstm.gestionimmobilier.dto.request.UpdateProfileRequest;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
 import univh2.fstm.gestionimmobilier.repository.PersonneRepository;

@@ -2,8 +2,10 @@ package univh2.fstm.gestionimmobilier.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import univh2.fstm.gestionimmobilier.dto.*;
-import univh2.fstm.gestionimmobilier.service.AuthService;
+import univh2.fstm.gestionimmobilier.dto.response.AuthResponse;
+import univh2.fstm.gestionimmobilier.dto.request.AuthRequest;
+import univh2.fstm.gestionimmobilier.dto.request.RegisterRequest;
+import univh2.fstm.gestionimmobilier.service.impl.AuthService;
 
 @RestController
 @RequestMapping("/auth")

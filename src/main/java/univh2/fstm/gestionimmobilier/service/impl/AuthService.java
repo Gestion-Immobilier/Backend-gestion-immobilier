@@ -1,11 +1,13 @@
-package univh2.fstm.gestionimmobilier.service;
+package univh2.fstm.gestionimmobilier.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import univh2.fstm.gestionimmobilier.dto.*;
+import univh2.fstm.gestionimmobilier.dto.response.AuthResponse;
+import univh2.fstm.gestionimmobilier.dto.request.AuthRequest;
+import univh2.fstm.gestionimmobilier.dto.request.RegisterRequest;
 import univh2.fstm.gestionimmobilier.mapper.PersonneMapper;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;

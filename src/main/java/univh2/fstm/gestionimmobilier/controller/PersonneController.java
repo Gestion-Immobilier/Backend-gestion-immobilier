@@ -3,10 +3,10 @@ package univh2.fstm.gestionimmobilier.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import univh2.fstm.gestionimmobilier.dto.PersonneDTO;
+import univh2.fstm.gestionimmobilier.dto.response.PersonneDTO;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
-import univh2.fstm.gestionimmobilier.service.PersonneService;
+import univh2.fstm.gestionimmobilier.service.impl.PersonneService;
 
 import java.util.List;
 

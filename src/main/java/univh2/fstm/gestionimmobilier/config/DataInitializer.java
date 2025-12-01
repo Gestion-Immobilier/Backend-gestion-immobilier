@@ -33,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setFirstName("Admin");
             admin.setLastName("System");
             admin.setEmail("admin@gestion-immobilier.com");
-            admin.setPhone("0600000000");
+            admin.setPhone("0600000045");
             admin.setType(Type.ADMIN);
             admin.setAdresse("Système");
             admin.setPassword(passwordEncoder.encode("Admin@123"));  // Mot de passe par défaut

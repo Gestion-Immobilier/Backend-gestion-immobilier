@@ -1,15 +1,17 @@
-package univh2.fstm.gestionimmobilier.dto;
+package univh2.fstm.gestionimmobilier.dto.response;
 
+import lombok.Builder;
 import lombok.Data;
 import univh2.fstm.gestionimmobilier.model.Type;
 
 @Data
-public class PersonneDTO {
+@Builder
+public class ProfileResponse {
+    private Type type;
     private String firstName;
     private String lastName;
     private String email;
     private String phone;
-    private Type type;
+    private Boolean verified;
     private String adresse;
-    private String password;
 }

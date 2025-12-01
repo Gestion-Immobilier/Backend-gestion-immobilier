@@ -1,4 +1,4 @@
-package univh2.fstm.gestionimmobilier.dto;
+package univh2.fstm.gestionimmobilier.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

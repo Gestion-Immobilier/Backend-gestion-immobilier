@@ -16,7 +16,7 @@ import univh2.fstm.gestionimmobilier.security.JwtFilter;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;

@@ -1,6 +1,6 @@
 // package univh2.fstm.gestionimmobilier.dto;
 
-package univh2.fstm.gestionimmobilier.dto;
+package univh2.fstm.gestionimmobilier.dto.request;
 
 import lombok.Data;
 

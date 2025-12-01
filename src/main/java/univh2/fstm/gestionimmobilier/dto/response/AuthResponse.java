@@ -1,4 +1,4 @@
-package univh2.fstm.gestionimmobilier.dto;
+package univh2.fstm.gestionimmobilier.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

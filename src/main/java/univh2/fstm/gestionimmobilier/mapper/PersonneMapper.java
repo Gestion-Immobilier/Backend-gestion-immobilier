@@ -2,10 +2,9 @@ package univh2.fstm.gestionimmobilier.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-import univh2.fstm.gestionimmobilier.dto.ProfileResponse;
+import univh2.fstm.gestionimmobilier.dto.response.ProfileResponse;
 import univh2.fstm.gestionimmobilier.model.Personne;
-import univh2.fstm.gestionimmobilier.dto.PersonneDTO;
+import univh2.fstm.gestionimmobilier.dto.response.PersonneDTO;
 
 
 @Mapper(componentModel = "spring")

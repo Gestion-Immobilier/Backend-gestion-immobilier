@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import univh2.fstm.gestionimmobilier.dto.ChangePasswordRequest;
-import univh2.fstm.gestionimmobilier.dto.UpdateProfileRequest;
+import univh2.fstm.gestionimmobilier.dto.request.ChangePasswordRequest;
+import univh2.fstm.gestionimmobilier.dto.request.UpdateProfileRequest;
 import univh2.fstm.gestionimmobilier.model.Personne;
-import univh2.fstm.gestionimmobilier.service.ProfileService;
+import univh2.fstm.gestionimmobilier.service.impl.ProfileService;
 
 import java.util.List;
 
