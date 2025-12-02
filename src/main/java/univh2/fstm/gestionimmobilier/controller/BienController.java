@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import univh2.fstm.gestionimmobilier.dto.request.BienRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.BienResponseDto;
@@ -35,6 +36,7 @@ public class BienController {
     // crud basique
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('PROPRIETAIRE', 'ADMIN')")
     @Operation(summary = "Créer un nouveau bien", description = "Crée un bien immobilier (Propriétaire)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Bien créé avec succès"),
@@ -48,6 +50,7 @@ public class BienController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Récupérer un bien par ID", description = "Récupère les détails d'un bien")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Bien trouvé"),
@@ -62,6 +65,7 @@ public class BienController {
 
 
     @GetMapping("/reference/{reference}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Récupérer un bien par référence")
     public ResponseEntity<BienResponseDto> getBienByReference(
             @Parameter(description = "Référence du bien") @PathVariable String reference) {
@@ -73,6 +77,7 @@ public class BienController {
 
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Récupérer tous les biens", description = "Liste complète (AGENT/ADMIN uniquement)")
     public ResponseEntity<List<BienResponseDto>> getAllBiens() {
         log.info("📥 GET /api/v1/biens - Récupération de tous les biens");
@@ -81,9 +86,20 @@ public class BienController {
     }
 
 
+    @GetMapping("/proprietaire/{proprietaireId}")
+    @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaire(#proprietaireId)")
+    @Operation(summary = "Récupérer les biens d'un propriétaire")
+    public ResponseEntity<List<BienResponseDto>> getBiensByProprietaire(
+            @PathVariable Long proprietaireId) {
+
+        log.info("📥 GET /api/v1/biens/proprietaire/{}", proprietaireId);
+        List<BienResponseDto> biens = bienService.getBiensByProprietaire(proprietaireId);
+        return ResponseEntity.ok(biens);
+    }
 
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaireDuBien(#id)")
     @Operation(summary = "Mettre à jour un bien", description = "Modifie un bien existant")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Bien mis à jour"),
@@ -102,6 +118,7 @@ public class BienController {
 
 
     @PatchMapping("/{id}/statut")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Changer le statut d'un bien", description = "Modifie DISPONIBLE/LOUE/EN_MAINTENANCE")
     public ResponseEntity<BienResponseDto> changerStatutBien(
             @PathVariable Long id,
@@ -116,6 +133,7 @@ public class BienController {
 
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaireDuBien(#id)")
     @Operation(summary = "Supprimer un bien")
     @ApiResponse(responseCode = "204", description = "Bien supprimé")
     public ResponseEntity<Void> deleteBien(@PathVariable Long id) {
@@ -129,6 +147,7 @@ public class BienController {
 
     // GESTION VALIDATION (AGENT)
     @GetMapping("/en-attente")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Biens en attente de validation", description = "Liste pour AGENT uniquement")
     public ResponseEntity<List<BienResponseDto>> getBiensEnAttente() {
         log.info("📥 GET /api/v1/biens/en-attente");
@@ -139,6 +158,7 @@ public class BienController {
 
 
     @PatchMapping("/{id}/valider")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Valider ou rejeter un bien", description = "AGENT seulement")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Bien validé/rejeté"),
@@ -158,6 +178,7 @@ public class BienController {
 
 
     @GetMapping("/stats/en-attente")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Nombre de biens en attente")
     public ResponseEntity<Map<String, Long>> compterBiensEnAttente() {
         log.info("📥 GET /api/v1/biens/stats/en-attente");
@@ -233,6 +254,7 @@ public class BienController {
     // STATISTIQUES
 
     @GetMapping("/stats/count")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Statistiques par statut de validation")
     public ResponseEntity<Map<String, Long>> getStatistiques(
             @RequestParam StatutValidation statutValidation) {

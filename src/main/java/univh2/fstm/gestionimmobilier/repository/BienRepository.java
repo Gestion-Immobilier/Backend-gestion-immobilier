@@ -54,4 +54,7 @@ public interface BienRepository extends JpaRepository<Bien, Long> {
     );
 
     List<Bien> findByStatutValidationAndTypeBien( StatutValidation statutValidation, TypeBien typeBien);
+
+    List<Bien> findByProprietaireId(Long proprietaireId);
+    long countByProprietaireId(Long proprietaireId);
 }

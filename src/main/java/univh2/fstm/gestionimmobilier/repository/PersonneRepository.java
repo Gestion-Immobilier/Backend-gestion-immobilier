@@ -18,4 +18,6 @@ public interface PersonneRepository extends JpaRepository<Personne, Long> {
 
     // ✅ Ajoute cette méthode
     boolean existsByTypeAndEmail(Type type, String email);
+
+
 }

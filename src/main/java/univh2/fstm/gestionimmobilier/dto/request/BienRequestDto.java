@@ -78,6 +78,6 @@ public class BienRequestDto {
 
     private Boolean ascenseur;
 
-    // Note : proprietaireId sera ajouté quand ton binôme aura créé Proprietaire
-    // private UUID proprietaireId;
+    @NotNull(message = "Le propriétaire est obligatoire")
+     private Long proprietaireId;
 }

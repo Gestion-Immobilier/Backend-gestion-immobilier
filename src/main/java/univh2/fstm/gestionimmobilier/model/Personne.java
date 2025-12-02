@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @AllArgsConstructor
@@ -31,6 +35,11 @@ public class Personne extends AuditEntity {
 
     // Un locataire peut demander à devenir propriétaire
     private Boolean demandeProprietaire = false;
+
+    @OneToMany(mappedBy = "proprietaire", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<Bien> biens = new ArrayList<>();
 
     @PrePersist
     public void initDefaults() {

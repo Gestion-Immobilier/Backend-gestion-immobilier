@@ -27,6 +27,9 @@ public interface BienService {
     BienResponseDto validerBien(Long id, BienValidationDto validationDto);
     long compterBiensEnAttente();
 
+    List<BienResponseDto> getBiensByProprietaire(Long proprietaireId);
+
+
     // Recherche pour les clients
 
     List<BienResponseDto> getBiensPublics();

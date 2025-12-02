@@ -10,11 +10,9 @@ import univh2.fstm.gestionimmobilier.dto.request.BienValidationDto;
 import univh2.fstm.gestionimmobilier.exception.BadRequestException;
 import univh2.fstm.gestionimmobilier.exception.ResourceNotFoundException;
 import univh2.fstm.gestionimmobilier.mapper.BienMapper;
-import univh2.fstm.gestionimmobilier.model.Bien;
-import univh2.fstm.gestionimmobilier.model.StatutBien;
-import univh2.fstm.gestionimmobilier.model.StatutValidation;
-import univh2.fstm.gestionimmobilier.model.TypeBien;
+import univh2.fstm.gestionimmobilier.model.*;
 import univh2.fstm.gestionimmobilier.repository.BienRepository;
+import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
 import univh2.fstm.gestionimmobilier.service.interfaces.BienService;
 import univh2.fstm.gestionimmobilier.utils.ReferenceGenerator;
 
@@ -27,6 +25,7 @@ import java.util.List;
 @Slf4j
 public class BienServiceImpl implements BienService {
     private final BienRepository bienRepository;
+    private final PersonneRepository personneRepository;
     private final BienMapper bienMapper;
     private final ReferenceGenerator referenceGenerator;
 
@@ -36,6 +35,23 @@ public class BienServiceImpl implements BienService {
     public BienResponseDto creerBien(BienRequestDto requestDto) {
         log.info("Création d'un nouveau bien de type: {}", requestDto.getTypeBien());
         Bien bien = bienMapper.toEntity(requestDto);
+        // ========== NOUVEAU : Associer le propriétaire ==========
+        Personne proprietaire = personneRepository.findById(requestDto.getProprietaireId())
+                .orElseThrow(() -> new ResourceNotFoundException("Propriétaire", "id", requestDto.getProprietaireId()));
+
+        // Vérifier que c'est bien un propriétaire
+        if (proprietaire.getType() != Type.PROPRIETAIRE) {
+            throw new BadRequestException("Cette personne n'est pas un propriétaire");
+        }
+
+        // Vérifier que le propriétaire est validé
+        if (!proprietaire.getVerified()) {
+            throw new BadRequestException("Le propriétaire doit être validé par un admin");
+        }
+
+        bien.setProprietaire(proprietaire);
+
+
         //generer ref unique
         String reference = referenceGenerator.genererReferenceBien(bien.getTypeBien());
         bien.setReference(reference);
@@ -212,6 +228,15 @@ public class BienServiceImpl implements BienService {
     @Transactional(readOnly = true)
     public long compterBiensEnAttente() {
         return bienRepository.countByStatutValidation(StatutValidation.EN_ATTENTE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BienResponseDto> getBiensByProprietaire(Long proprietaireId) {
+        log.debug("Récupération des biens du propriétaire: {}", proprietaireId);
+
+        List<Bien> biens = bienRepository.findByProprietaireId(proprietaireId);
+        return bienMapper.toResponseDto(biens);
     }
 
     // la recherche pour les clients public
