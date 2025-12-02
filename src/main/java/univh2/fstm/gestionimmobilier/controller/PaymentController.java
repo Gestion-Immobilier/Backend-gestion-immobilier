@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import univh2.fstm.gestionimmobilier.dto.request.PaymentInitRequest;
 import univh2.fstm.gestionimmobilier.model.Payment;
-import univh2.fstm.gestionimmobilier.service.impl.PaymentReceiptRequest;
 import univh2.fstm.gestionimmobilier.service.impl.PaymentService;
 import univh2.fstm.gestionimmobilier.service.impl.ReceiptService;
 
