@@ -48,4 +48,33 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         return userDetails.getUsername().equals(extractEmail(token)) && !isExpired(token);
     }
+
+
+    // nouvelles methodes pour recuperer id depuis le token
+
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        Object idClaim = claims.get("id");
+
+        if (idClaim instanceof Integer) {
+            return ((Integer) idClaim).longValue();
+        } else if (idClaim instanceof Long) {
+            return (Long) idClaim;
+        } else if (idClaim instanceof String) {
+            return Long.parseLong((String) idClaim);
+        }
+
+        return null;
+    }
+
+    public String extractRole(String token) {
+        return (String) extractAllClaims(token).get("role");
+    }
+
+
+
+
+
+
+
 }
