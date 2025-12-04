@@ -64,7 +64,7 @@ public class ContratRequestDto extends FileDto {
 
     @Size(max = 5000, message = "Les clauses particulières ne doivent pas dépasser 5000 caractères")
     private String clausesParticulieres;
-
-    // Le fichier PDF sera envoyé séparément via MultipartFile
-    //private MultipartFile document;
+//
+//     Le fichier PDF sera envoyé séparément via MultipartFile
+//    private MultipartFile document;
 }

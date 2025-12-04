@@ -65,4 +65,9 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
      */
     @Query("SELECT c FROM Contrat c WHERE c.bien.proprietaire.id = :proprietaireId")
     List<Contrat> findByProprietaireId(@Param("proprietaireId") Long proprietaireId);
+
+
+
+
+
 }

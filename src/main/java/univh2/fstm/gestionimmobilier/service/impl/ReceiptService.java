@@ -5,6 +5,7 @@ import com.lowagie.text.pdf.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import univh2.fstm.gestionimmobilier.model.Bien;
+import univh2.fstm.gestionimmobilier.model.Contrat;
 import univh2.fstm.gestionimmobilier.model.Payment;
 import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.repository.BienRepository;
@@ -36,11 +37,13 @@ public class ReceiptService {
     private static final Color DARK_GRAY = new Color(51, 51, 51);
 
     public String generateReceipt(Payment payment) throws Exception {
-        Personne locataire = personneRepository.findById(payment.getUserId())
-                .orElseThrow(() -> new Exception("Locataire introuvable !"));
-        Bien bien = bienRepository.findById(payment.getPropertyId())
-                .orElseThrow(() -> new Exception("Bien introuvable !"));
-        Personne proprietaire = bien.getProprietaire();
+        // Récupérer le contrat associé
+        Contrat contrat = payment.getContrat();
+
+        // Récupérer les informations depuis le contrat
+        Personne locataire = contrat.getLocataire();
+        Personne proprietaire = contrat.getBien().getProprietaire();
+        Bien bien = contrat.getBien();
 
         File dir = new File(receiptFolder);
         if (!dir.exists()) dir.mkdirs();
@@ -54,7 +57,7 @@ public class ReceiptService {
 
         document.open();
 
-        // Police personnalisée - Utiliser java.awt.Color
+        // Police personnalisée
         Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, HEADER_COLOR);
         Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, DARK_GRAY);
         Font labelFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, DARK_GRAY);
@@ -76,7 +79,7 @@ public class ReceiptService {
         titleCell.setPaddingBottom(10);
         headerTable.addCell(titleCell);
 
-        PdfPCell numberCell = new PdfPCell(new Phrase("N° " + payment.getId(), receiptNumberFont));
+        PdfPCell numberCell = new PdfPCell(new Phrase("N° " + payment.getReference(), receiptNumberFont));
         numberCell.setBackgroundColor(HEADER_COLOR);
         numberCell.setBorder(Rectangle.NO_BORDER);
         numberCell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -86,7 +89,6 @@ public class ReceiptService {
 
         document.add(headerTable);
 
-        // Ligne de séparation
         document.add(createSeparatorLine());
         document.add(Chunk.NEWLINE);
 
@@ -117,19 +119,28 @@ public class ReceiptService {
         detailsTable.setSpacingBefore(10);
         detailsTable.setSpacingAfter(20);
 
-        addDetailRow(detailsTable, "Référence", bien.getReference(), labelFont, valueFont);
+        // Référence du contrat
+        addDetailRow(detailsTable, "Référence contrat", contrat.getReference(), labelFont, valueFont);
+
+        // Référence du bien
+        addDetailRow(detailsTable, "Référence bien", bien.getReference(), labelFont, valueFont);
+
+        // Date d'émission
         addDetailRow(detailsTable, "Date d'émission", dateEtablie, labelFont, valueFont);
 
+        // Date de paiement
         if (payment.getCapturedAt() != null) {
             String datePaiement = payment.getCapturedAt()
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
             addDetailRow(detailsTable, "Date de paiement", datePaiement, labelFont, valueFont);
         }
 
+        // Adresse du bien
         addDetailRow(detailsTable, "Adresse du bien",
                 bien.getAdresse() + ", " + bien.getCodePostal() + " " + bien.getVille(),
                 labelFont, normalFont);
 
+        // Type de bien
         if (bien.getTypeBien() != null) {
             addDetailRow(detailsTable, "Type de bien", bien.getTypeBien().toString(), labelFont, valueFont);
         }
@@ -137,14 +148,12 @@ public class ReceiptService {
         document.add(detailsTable);
 
         // === PÉRIODE DE PAIEMENT ===
-        LocalDate dateCaptured = payment.getCapturedAt() != null ?
-                payment.getCapturedAt().toLocalDate() : LocalDate.now();
-        LocalDate debutMois = dateCaptured.withDayOfMonth(1);
-        LocalDate finMois = dateCaptured.withDayOfMonth(dateCaptured.lengthOfMonth());
+        LocalDate moisConcerne = payment.getMoisConcerne();
+        LocalDate finMois = moisConcerne.withDayOfMonth(moisConcerne.lengthOfMonth());
 
         Paragraph periodeText = new Paragraph(
                 "Période de paiement : " +
-                        debutMois.format(formatter) + " au " +
+                        moisConcerne.format(formatter) + " au " +
                         finMois.format(formatter),
                 labelFont
         );
@@ -177,13 +186,15 @@ public class ReceiptService {
         }
 
         // Loyer nu
-        BigDecimal loyerNu = bien.getLoyerMensuel();
-        addMontantRow(montantsTable, "Loyer mensuel", loyerNu + " MAD", loyerNu + " MAD");
+        addMontantRow(montantsTable, "Loyer mensuel",
+                payment.getMontantLoyer() + " MAD",
+                payment.getMontantLoyer() + " MAD");
 
         // Charges
-        BigDecimal charges = bien.getCharges() != null ? bien.getCharges() : BigDecimal.ZERO;
-        if (charges.compareTo(BigDecimal.ZERO) > 0) {
-            addMontantRow(montantsTable, "Charges", charges + " MAD", charges + " MAD");
+        if (payment.getMontantCharges().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            addMontantRow(montantsTable, "Charges",
+                    payment.getMontantCharges() + " MAD",
+                    payment.getMontantCharges() + " MAD");
         }
 
         // Ligne vide avant le total
@@ -205,14 +216,34 @@ public class ReceiptService {
         emptyCell2.setPadding(10);
         montantsTable.addCell(emptyCell2);
 
-        BigDecimal totalPaye = BigDecimal.valueOf(payment.getAmount());
-        PdfPCell totalCell = new PdfPCell(new Phrase(totalPaye + " MAD", amountFont));
+        PdfPCell totalCell = new PdfPCell(new Phrase(payment.getMontantTotal() + " MAD", amountFont));
         totalCell.setBorder(Rectangle.NO_BORDER);
         totalCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         totalCell.setPadding(10);
         montantsTable.addCell(totalCell);
 
         document.add(montantsTable);
+
+        // === INFORMATIONS SUPPLEMENTAIRES ===
+        Paragraph infoContrat = new Paragraph("Informations du contrat:", labelFont);
+        infoContrat.setSpacingBefore(20);
+        document.add(infoContrat);
+
+        PdfPTable infoContratTable = new PdfPTable(2);
+        infoContratTable.setWidthPercentage(100);
+        infoContratTable.setWidths(new float[]{40, 60});
+        infoContratTable.setSpacingBefore(10);
+
+        addDetailRow(infoContratTable, "Date début contrat",
+                contrat.getDateDebut().format(formatter), smallFont, normalFont);
+        addDetailRow(infoContratTable, "Date fin contrat",
+                contrat.getDateFin().format(formatter), smallFont, normalFont);
+        addDetailRow(infoContratTable, "Durée",
+                contrat.getDureeContrat() + " mois", smallFont, normalFont);
+        addDetailRow(infoContratTable, "Type contrat",
+                contrat.getTypeContrat().toString(), smallFont, normalFont);
+
+        document.add(infoContratTable);
 
         // === SIGNATURE ===
         PdfPTable signatureTable = new PdfPTable(2);

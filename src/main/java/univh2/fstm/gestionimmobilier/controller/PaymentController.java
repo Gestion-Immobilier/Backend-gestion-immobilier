@@ -10,6 +10,7 @@ import univh2.fstm.gestionimmobilier.model.Payment;
 import univh2.fstm.gestionimmobilier.service.impl.PaymentService;
 import univh2.fstm.gestionimmobilier.service.impl.ReceiptService;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/payments")
@@ -20,15 +21,23 @@ public class PaymentController {
     private final ReceiptService receiptService;
 
     @PostMapping("/init")
-    public ResponseEntity<?> initPayment(@RequestBody PaymentInitRequest request) throws Exception {
-        Payment payment = paymentService.initPayment(request);
-        return ResponseEntity.ok(new Object() {
-            public final Long paymentId = payment.getId();
-            public final String status = payment.getStatus().name();
-            public final double amount = payment.getAmount();
-            public final String currency = "MAD";
-            public final String message = "Paiement initialisé avec succès.";
-        });
+    public ResponseEntity<?> initPayment(@RequestBody PaymentInitRequest request) {
+        try {
+            Payment payment = paymentService.initPayment(request);
+            return ResponseEntity.ok(new Object() {
+                public final Long id = payment.getId();
+                public final String reference = payment.getReference();
+                public final String status = payment.getStatus().name();
+                public final String moisConcerne = payment.getMoisConcerne().toString();
+                public final Double montantTotal = payment.getMontantTotal().doubleValue();
+                public final String dateEcheance = payment.getDateEcheance().toString();
+                public final String message = "Paiement initialisé avec succès";
+            });
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public final String error = e.getMessage();
+            });
+        }
     }
 
     @PostMapping("/{paymentId}/capture")
@@ -38,27 +47,66 @@ public class PaymentController {
             String receiptUrl = receiptService.generateReceipt(payment);
 
             return ResponseEntity.ok(new Object() {
-                public final Long paymentId = payment.getId();
+                public final Long id = payment.getId();
+                public final String reference = payment.getReference();
                 public final String status = payment.getStatus().name();
                 public final String capturedAt = payment.getCapturedAt().toString();
-                public final String receiptUrlStr = receiptUrl;
-                public final String message = "Paiement capturé et quittance générée.";
+                public final String receiptUrlStr = receiptUrl; // Changé de receiptUrl à receiptUrlStr
+                public final String message = "Paiement capturé et quittance générée";
             });
-
         } catch (Exception e) {
-            e.printStackTrace(); // pour voir l'erreur exacte dans la console
-            return ResponseEntity.status(500).body(new Object() {
+            return ResponseEntity.badRequest().body(new Object() {
                 public final String error = e.getMessage();
             });
         }
     }
 
+    @PostMapping("/{paymentId}/cancel")
+    public ResponseEntity<?> cancelPayment(@PathVariable Long paymentId) {
+        try {
+            Payment payment = paymentService.cancelPayment(paymentId);
+            return ResponseEntity.ok(new Object() {
+                public final Long id = payment.getId();
+                public final String reference = payment.getReference();
+                public final String status = payment.getStatus().name();
+                public final String message = "Paiement annulé";
+            });
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public final String error = e.getMessage();
+            });
+        }
+    }
+
+    @GetMapping("/contrat/{contratId}")
+    public ResponseEntity<?> getPaiementsByContrat(@PathVariable Long contratId) {
+        List<Payment> paiements = paymentService.getHistoriquePaiements(contratId);
+        return ResponseEntity.ok(paiements);
+    }
+
+    @GetMapping("/locataire/{locataireId}")
+    public ResponseEntity<?> getPaiementsByLocataire(@PathVariable Long locataireId) {
+        List<Payment> paiements = paymentService.getPaiementsByLocataire(locataireId);
+        return ResponseEntity.ok(paiements);
+    }
+
+    @GetMapping("/en-attente")
+    public ResponseEntity<?> getPaiementsEnAttente() {
+        List<Payment> paiements = paymentService.getPaiementsEnAttente();
+        return ResponseEntity.ok(paiements);
+    }
+
+    @GetMapping("/en-retard")
+    public ResponseEntity<?> getPaiementsEnRetard() {
+        List<Payment> paiements = paymentService.getPaiementsEnRetard();
+        return ResponseEntity.ok(paiements);
+    }
 
     @GetMapping("/receipt/{paymentId}")
     public ResponseEntity<byte[]> downloadReceipt(@PathVariable Long paymentId) throws Exception {
         byte[] pdf = receiptService.loadReceipt(paymentId);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=receipt_" + paymentId + ".pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=quittance_" + paymentId + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
