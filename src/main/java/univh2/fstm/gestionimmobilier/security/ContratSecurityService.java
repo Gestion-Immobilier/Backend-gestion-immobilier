@@ -8,19 +8,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import univh2.fstm.gestionimmobilier.repository.BienRepository;
+import univh2.fstm.gestionimmobilier.repository.ContratRepository;
 
-@Service("bienSecurityService")
+@Service("contratSecurityService")
 @RequiredArgsConstructor
 @Slf4j
-public class BienSecurityService {
+public class ContratSecurityService {
 
-    private final BienRepository bienRepository;
+    private final ContratRepository contratRepository;
     private final JwtService jwtService;
 
-
-    // on recupere l'id du user depuis token
-    public Long getCurrentUserId() {
+    /**
+     * Récupère l'ID utilisateur depuis le token JWT
+     */
+    private Long getCurrentUserId() {
         try {
             ServletRequestAttributes attributes =
                     (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -42,11 +43,11 @@ public class BienSecurityService {
         return null;
     }
 
-
     /**
-     * Vérifie si l'utilisateur connecté est le propriétaire du bien
+     * Vérifie si l'utilisateur est une partie prenante du contrat
+     * (locataire OU propriétaire du bien)
      */
-    public boolean isProprietaireDuBien(Long bienId) {
+    public boolean isPartiePrenanteContrat(Long contratId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return false;
@@ -57,25 +58,46 @@ public class BienSecurityService {
             return false;
         }
 
-        return bienRepository.findById(bienId)
-                .map(bien -> bien.getProprietaire().getId().equals(userIdConnecte))
+        return contratRepository.findById(contratId)
+                .map(contrat ->
+                        contrat.getLocataire().getId().equals(userIdConnecte) ||
+                                contrat.getBien().getProprietaire().getId().equals(userIdConnecte)
+                )
                 .orElse(false);
     }
 
     /**
-     * Vérifie si l'utilisateur connecté a cet ID de propriétaire
+     * Vérifie si l'utilisateur est une partie prenante du contrat par référence
      */
-    public boolean isProprietaire(Long proprietaireId) {
+    public boolean isPartiePrenanteContratByReference(String reference) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return false;
         }
 
-        // Récupère l'ID de l'utilisateur depuis le token (ton binôme doit avoir ça)
-        // Adapte selon comment elle stocke l'ID dans le token JWT
         Long userIdConnecte = getCurrentUserId();
+        if (userIdConnecte == null) {
+            return false;
+        }
 
-        return proprietaireId.equals(userIdConnecte);
+        return contratRepository.findByReference(reference)
+                .map(contrat ->
+                        contrat.getLocataire().getId().equals(userIdConnecte) ||
+                                contrat.getBien().getProprietaire().getId().equals(userIdConnecte)
+                )
+                .orElse(false);
     }
 
+    /**
+     * Vérifie si l'utilisateur est le locataire
+     */
+    public boolean isLocataire(Long locataireId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+
+        Long userIdConnecte = getCurrentUserId();
+        return locataireId.equals(userIdConnecte);
+    }
 }

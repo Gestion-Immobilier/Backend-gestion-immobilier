@@ -48,6 +48,8 @@ ssl-enabled: ${UPLOAD_SSL:false}
 
 minio:
   url: ${MINIO_URL:http://127.0.0.1:9000}
+  access-key: ${MINIO_ACCESS_KEY:admin}
+  secret-key: ${MINIO_SECRET_KEY:admin123}
   bucket-temp: ${MINIO_BUCKET_TEMP:temp}
-  bucket-contrat: ${MINIO_BUCKET_DIPLOME:cnd-contrat}
-  bucket-quittance: ${MINIO_BUCKET_CIN:cnd-quittance}
+  bucket-contrat: ${MINIO_BUCKET_CONTRAT:cnd-contrat}
+  bucket-quittance: ${MINIO_BUCKET_QUITTANCE:cnd-quittance}

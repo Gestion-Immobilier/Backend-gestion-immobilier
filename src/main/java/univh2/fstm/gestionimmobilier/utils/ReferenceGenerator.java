@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import univh2.fstm.gestionimmobilier.model.TypeBien;
 import univh2.fstm.gestionimmobilier.repository.BienRepository;
+import univh2.fstm.gestionimmobilier.repository.ContratRepository;
 
 import java.time.Year;
 
@@ -15,6 +16,8 @@ import java.time.Year;
 public class ReferenceGenerator {
 
     private final BienRepository bienRepository;
+    private final ContratRepository contratRepository;
+
 
     public String genererReferenceBien(TypeBien typeBien) {
         String typeCode = getTypeCode(typeBien);
@@ -40,4 +43,18 @@ public class ReferenceGenerator {
             case GARAGE -> "GARA";
             case TERRAIN -> "TERR";
         };
-}}
+    }
+
+    public String genererReferenceContrat() {
+        int annee = Year.now().getValue();
+
+        int numero = 1;
+        String reference;
+        do {
+            reference = String.format("CONTRAT-%d-%04d", annee, numero);
+            numero++;
+        } while (contratRepository.existsByReference(reference));
+
+        return reference;
+    }
+}
