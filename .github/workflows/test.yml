@@ -1,23 +1,31 @@
 name: Java CI - Test Branches
 
+# Déclencheur : toutes les branches sauf main
 on:
   push:
-    branches-ignore: [ "main" ]   # Ignorer main, tester les autres branches
+    branches-ignore: [ "main" ]
   pull_request:
-    branches-ignore: [ "main" ]   # Même pour les PR
+    branches-ignore: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      # 1️⃣ Récupérer le code source
+      - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      # 2️⃣ Installer Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Build with Gradle
-      run: ./gradlew build
+      # 3️⃣ Donner la permission d'exécution à gradlew
+      - name: Give permission to Gradle wrapper
+        run: chmod +x gradlew
+
+      # 4️⃣ Build et test avec Gradle
+      - name: Build with Gradle
+        run: ./gradlew build
