@@ -5,13 +5,25 @@ services:
     image: postgres:15-alpine
     container_name: gestion-immobilier-db
     environment:
-      POSTGRES_DB: gestion_immobilier
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: PlatformeImmobiliere
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hayat
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: immobilier-app
+    container_name: gestion-immobilier-backend
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/PlatformeImmobiliere
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: hayat
 
 volumes:
   postgres_data:
