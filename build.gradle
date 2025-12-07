@@ -10,7 +10,7 @@ description = 'Gestion-Immobilier'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -30,8 +30,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    implementation 'com.github.librepdf:openpdf:1.3.39'
-    implementation 'com.github.librepdf:openpdf:2.0.2'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
     implementation 'org.mapstruct:mapstruct:1.6.3'
     implementation 'io.minio:minio:8.6.0'
@@ -62,4 +60,3 @@ tasks.named('test') {
 springBoot {
     buildInfo()
 }
-
