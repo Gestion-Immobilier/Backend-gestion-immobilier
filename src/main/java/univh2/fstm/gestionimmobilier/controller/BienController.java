@@ -1,17 +1,26 @@
 package univh2.fstm.gestionimmobilier.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import univh2.fstm.gestionimmobilier.dto.request.BienRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.BienResponseDto;
 import univh2.fstm.gestionimmobilier.dto.request.BienValidationDto;
@@ -24,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,19 +45,55 @@ public class BienController {
 
     // crud basique
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('PROPRIETAIRE', 'ADMIN')")
     @Operation(summary = "Créer un nouveau bien", description = "Crée un bien immobilier (Propriétaire)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Bien créé avec succès"),
             @ApiResponse(responseCode = "400", description = "Données invalides")
     })
-    public ResponseEntity<BienResponseDto> creerBien(@Valid @RequestBody BienRequestDto bienRequestDto){
+    public ResponseEntity<BienResponseDto> creerBien(@Parameter(description = "Données du bien au format JSON", required = true)
+                                                         @RequestParam("bien") String bienJson,
+                                                     @Parameter(description = "Photos du bien", required = false)
+                                                         @RequestParam("photos") List<MultipartFile> photos){
         log.info("POST /api/v1/biens - Creation d'un bien");
-        BienResponseDto responseDto = bienService.creerBien(bienRequestDto);
-        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+        try {
+            // Désérialiser le JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+            BienRequestDto requestDto = objectMapper.readValue(bienJson, BienRequestDto.class);
+
+            log.info("✅ JSON parsé avec succès pour le bien: {}", requestDto.getTypeBien());
+
+            // Valider le DTO
+            validateBienRequest(requestDto);
+
+        BienResponseDto responseDto = bienService.creerBien(requestDto,photos);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+        } catch (JsonProcessingException e) {
+            log.error("❌ Erreur de parsing JSON: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (ConstraintViolationException e) {
+            log.error("❌ Validation échouée: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
+
+
+    private void validateBienRequest(BienRequestDto dto) {
+        Set<ConstraintViolation<BienRequestDto>> violations =
+                Validation.buildDefaultValidatorFactory().getValidator().validate(dto);
+
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+    }
+
+
+
+
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -98,7 +144,7 @@ public class BienController {
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaireDuBien(#id)")
     @Operation(summary = "Mettre à jour un bien", description = "Modifie un bien existant")
     @ApiResponses({
@@ -106,13 +152,38 @@ public class BienController {
             @ApiResponse(responseCode = "404", description = "Bien introuvable"),
             @ApiResponse(responseCode = "400", description = "Données invalides")
     })
-    public ResponseEntity<BienResponseDto> updateBien(
-            @PathVariable Long id,
-            @Valid @RequestBody BienRequestDto requestDto) {
+    public ResponseEntity<BienResponseDto> updateBien(@Parameter(description = "ID du bien à mettre à jour", required = true)
+                                                          @PathVariable Long id,
+                                                      @Parameter(description = "Données du bien au format JSON", required = true)
+                                                          @RequestParam("bien") String bienJson,
+                                                      @Parameter(description = "Photos à ajouter au bien", required = false)
+                                                          @RequestParam(value = "photos", required = false) List<MultipartFile> photos) {
 
         log.info("📥 PUT /api/v1/biens/{}", id);
-        BienResponseDto response = bienService.updateBien(id, requestDto);
-        return ResponseEntity.ok(response);
+        try {
+            // Désérialiser le JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            BienRequestDto requestDto = objectMapper.readValue(bienJson, BienRequestDto.class);
+
+            log.info("✅ JSON parsé avec succès pour le bien: {}", requestDto.getTypeBien());
+
+            // Valider le DTO
+            validateBienRequest(requestDto);
+
+            // Appeler le service pour mettre à jour le bien avec photos
+            BienResponseDto response = bienService.updateBien(id, requestDto, photos);
+            return ResponseEntity.ok(response);
+
+        } catch (JsonProcessingException e) {
+            log.error("❌ Erreur de parsing JSON: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (ConstraintViolationException e) {
+            log.error("❌ Validation échouée: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 

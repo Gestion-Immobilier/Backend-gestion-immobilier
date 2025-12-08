@@ -2,8 +2,10 @@ package univh2.fstm.gestionimmobilier.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import univh2.fstm.gestionimmobilier.dto.request.BienRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.BienResponseDto;
 import univh2.fstm.gestionimmobilier.dto.request.BienValidationDto;
@@ -13,10 +15,12 @@ import univh2.fstm.gestionimmobilier.mapper.BienMapper;
 import univh2.fstm.gestionimmobilier.model.*;
 import univh2.fstm.gestionimmobilier.repository.BienRepository;
 import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
+import univh2.fstm.gestionimmobilier.service.MinioService;
 import univh2.fstm.gestionimmobilier.service.interfaces.BienService;
 import univh2.fstm.gestionimmobilier.utils.ReferenceGenerator;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,11 +32,15 @@ public class BienServiceImpl implements BienService {
     private final PersonneRepository personneRepository;
     private final BienMapper bienMapper;
     private final ReferenceGenerator referenceGenerator;
+    private final MinioService minioService;
+
+    @Value("${minio.bucket-bien}")
+    private String bucketBien;
 
 
 
     @Override
-    public BienResponseDto creerBien(BienRequestDto requestDto) {
+    public BienResponseDto creerBien(BienRequestDto requestDto, List<MultipartFile> photos) {
         log.info("Création d'un nouveau bien de type: {}", requestDto.getTypeBien());
         Bien bien = bienMapper.toEntity(requestDto);
         // ========== NOUVEAU : Associer le propriétaire ==========
@@ -69,6 +77,27 @@ public class BienServiceImpl implements BienService {
         if (bien.getParking() == null) bien.setParking(false);
         if (bien.getAscenseur() == null) bien.setAscenseur(false);
 
+        // ========== NOUVEAU : Upload des photos ==========
+        if (photos != null && !photos.isEmpty()) {
+            List<String> photoUrls = new ArrayList<>();
+            for (MultipartFile photo : photos) {
+                try {
+                    String uuid = minioService.uploadFile(photo, bucketBien, "photos");
+                    String objectPath = minioService.buildObjectPath(
+                            "photos",
+                            uuid,
+                            getFileExtension(photo.getOriginalFilename())
+                    );
+                    String downloadUri = minioService.getPresignedDownloadUrl(bucketBien, objectPath);
+                    photoUrls.add(downloadUri);
+                    log.info("✅ Photo uploadée dans MinIO - UUID: {}", uuid);
+                } catch (Exception e) {
+                    log.error("❌ Erreur lors de l'upload de la photo {}", photo.getOriginalFilename(), e);
+                    throw new RuntimeException("Erreur lors de l'upload d'une photo", e);
+                }
+            }
+            bien.setPhotos(photoUrls);
+        }
         // et enfin on save le bien
         Bien bienSauvegarde = bienRepository.save(bien);
 
@@ -76,6 +105,12 @@ public class BienServiceImpl implements BienService {
         return bienMapper.toResponseDto(bienSauvegarde);
     }
 
+    // Méthode utilitaire pour récupérer l'extension d'un fichier
+    private String getFileExtension(String filename) {
+        if (filename == null) return "";
+        int dotIndex = filename.lastIndexOf('.');
+        return (dotIndex == -1) ? "" : filename.substring(dotIndex + 1);
+    }
 
 
     @Override
@@ -107,7 +142,7 @@ public class BienServiceImpl implements BienService {
     }
 
     @Override
-    public BienResponseDto updateBien(Long id, BienRequestDto requestDto) {
+    public BienResponseDto updateBien(Long id, BienRequestDto requestDto,List<MultipartFile> photos) {
         log.info("Mettre a jour le bien d'id: {}",id);
         //je recupere le bien existant
         Bien bienExistant = bienRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Bien","id",id));
@@ -149,8 +184,8 @@ public class BienServiceImpl implements BienService {
             bienExistant.setStatut(requestDto.getStatut());
         if (requestDto.getDateAcquisition() != null)
             bienExistant.setDateAcquisition(requestDto.getDateAcquisition());
-        if (requestDto.getPhotos() != null)
-            bienExistant.setPhotos(requestDto.getPhotos());
+//        if (requestDto.getPhotos() != null)
+//            bienExistant.setPhotos(requestDto.getPhotos());
         if (requestDto.getMeuble() != null)
             bienExistant.setMeuble(requestDto.getMeuble());
         if (requestDto.getBalcon() != null)
@@ -159,6 +194,29 @@ public class BienServiceImpl implements BienService {
             bienExistant.setParking(requestDto.getParking());
         if (requestDto.getAscenseur() != null)
             bienExistant.setAscenseur(requestDto.getAscenseur());
+
+
+        // ========== NOUVEAU : Upload des nouvelles photos ==========
+        if (photos != null && !photos.isEmpty()) {
+            List<String> photoUrls = bienExistant.getPhotos() != null ? new ArrayList<>(bienExistant.getPhotos()) : new ArrayList<>();
+            for (MultipartFile photo : photos) {
+                try {
+                    String uuid = minioService.uploadFile(photo, bucketBien, "photos");
+                    String objectPath = minioService.buildObjectPath(
+                            "photos",
+                            uuid,
+                            getFileExtension(photo.getOriginalFilename())
+                    );
+                    String downloadUri = minioService.getPresignedDownloadUrl(bucketBien, objectPath);
+                    photoUrls.add(downloadUri);
+                    log.info("✅ Photo uploadée dans MinIO - UUID: {}", uuid);
+                } catch (Exception e) {
+                    log.error("❌ Erreur lors de l'upload de la photo {}", photo.getOriginalFilename(), e);
+                    throw new RuntimeException("Erreur lors de l'upload d'une photo", e);
+                }
+            }
+            bienExistant.setPhotos(photoUrls);
+        }
 
         // enfin on save
         Bien bienMisAjour = bienRepository.save(bienExistant);

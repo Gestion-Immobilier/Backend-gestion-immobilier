@@ -1,11 +1,10 @@
 package univh2.fstm.gestionimmobilier.dto.request;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import univh2.fstm.gestionimmobilier.dto.FileDto;
 import univh2.fstm.gestionimmobilier.model.StatutBien;
 import univh2.fstm.gestionimmobilier.model.TypeBien;
 
@@ -13,11 +12,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class BienRequestDto {
+@SuperBuilder
+public class BienRequestDto extends FileDto {
 
     @Size(max = 50, message = "La référence ne doit pas dépasser 50 caractères")
     private String reference;
@@ -68,7 +68,7 @@ public class BienRequestDto {
 
     private LocalDate dateAcquisition;
 
-    private List<String> photos;
+   // private List<String> photos;
 
     private Boolean meuble;
 

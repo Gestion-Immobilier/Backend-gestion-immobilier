@@ -1,5 +1,6 @@
 package univh2.fstm.gestionimmobilier.service.interfaces;
 
+import org.springframework.web.multipart.MultipartFile;
 import univh2.fstm.gestionimmobilier.dto.request.BienRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.BienResponseDto;
 import univh2.fstm.gestionimmobilier.dto.request.BienValidationDto;
@@ -7,17 +8,19 @@ import univh2.fstm.gestionimmobilier.model.StatutBien;
 import univh2.fstm.gestionimmobilier.model.StatutValidation;
 import univh2.fstm.gestionimmobilier.model.TypeBien;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface BienService {
 
-    BienResponseDto creerBien(BienRequestDto requestDto);
+    BienResponseDto creerBien(BienRequestDto requestDto, List<MultipartFile> photos);
+    BienResponseDto updateBien(Long id, BienRequestDto requestDto,List<MultipartFile> photos);
     BienResponseDto getBienById(Long id);
     BienResponseDto getBienByReference(String reference);
     List<BienResponseDto> getAllBiens();
 
-    BienResponseDto updateBien(Long id, BienRequestDto requestDto);
+
     BienResponseDto changerStatutBien(Long id, StatutBien nouveauStatut);
     void deleteBien(Long id);
 

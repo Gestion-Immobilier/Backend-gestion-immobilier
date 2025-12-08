@@ -53,3 +53,4 @@ minio:
   bucket-temp: ${MINIO_BUCKET_TEMP:temp}
   bucket-contrat: ${MINIO_BUCKET_CONTRAT:cnd-contrat}
   bucket-quittance: ${MINIO_BUCKET_QUITTANCE:cnd-quittance}
+  bucket-bien: ${MINIO_BUCKET_BIEN:cnd-bien}
