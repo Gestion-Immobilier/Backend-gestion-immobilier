@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
@@ -27,11 +30,6 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-//        String path = request.getRequestURI();
-//        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
 
         String authHeader = request.getHeader("Authorization");
         String token = null;
@@ -39,17 +37,40 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwtService.extractEmail(token);
+
+            // Log pour debug
+            logger.debug("Token brut extrait de l'header: '{}'", token);
+
+            // Nettoyer le token
+            String cleanedToken = token.trim().replaceAll("\\s+", "");
+
+            if (!token.equals(cleanedToken)) {
+                logger.warn("Token nettoyé: espaces détectés et supprimés");
+            }
+
+            try {
+                email = jwtService.extractEmail(cleanedToken);
+            } catch (Exception e) {
+                logger.error("Erreur lors de l'extraction de l'email du token", e);
+                // Continuer sans authentifier l'utilisateur
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            if (jwtService.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (jwtService.isTokenValid(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                logger.error("Erreur lors de l'authentification avec le token", e);
+                // Ne pas bloquer la requête, mais l'utilisateur ne sera pas authentifié
             }
         }
 

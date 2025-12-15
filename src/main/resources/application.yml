@@ -1,7 +1,10 @@
 server:
   port: ${APP_PORT:8000}
+  address: 0.0.0.0
 
 spring:
+  security:
+    enabled: false
   application:
     name: Gestion-Immobilier-App
   config:
@@ -20,6 +23,11 @@ spring:
     password: hayat
     driver-class-name: org.postgresql.Driver
 
+    security:
+      oauth2:
+        resourceserver:
+          jwt:
+            enabled: false
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:4MB}
