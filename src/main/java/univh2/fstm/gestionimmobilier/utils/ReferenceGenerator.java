@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import univh2.fstm.gestionimmobilier.model.TypeBien;
 import univh2.fstm.gestionimmobilier.repository.BienRepository;
 import univh2.fstm.gestionimmobilier.repository.ContratRepository;
+import univh2.fstm.gestionimmobilier.repository.ReclamationRepository;
 
 import java.time.Year;
 
@@ -17,6 +18,7 @@ public class ReferenceGenerator {
 
     private final BienRepository bienRepository;
     private final ContratRepository contratRepository;
+    private final ReclamationRepository reclamationRepository;
 
 
     public String genererReferenceBien(TypeBien typeBien) {
@@ -55,6 +57,17 @@ public class ReferenceGenerator {
             numero++;
         } while (contratRepository.existsByReference(reference));
 
+        return reference;
+    }
+
+    public String genererReferenceReclamation(){
+        int annee = Year.now().getValue();
+        int numero = 1;
+        String reference;
+        do {
+            reference = String.format("RECLAMATION-%d-%04d", annee, numero);
+            numero++;
+        }while (reclamationRepository.existsByReference(reference));
         return reference;
     }
 }
