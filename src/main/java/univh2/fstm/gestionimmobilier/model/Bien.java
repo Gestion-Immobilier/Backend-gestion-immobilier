@@ -20,7 +20,7 @@ import java.util.List;
 @Data
 @SuperBuilder
 @Entity
-public class Bien extends AuditEntity{
+public class Bien extends FileEntity{
     @Column(nullable = false, unique = true, length = 50)
     @NotBlank(message = "La référence est obligatoire")
     private String reference;
@@ -93,7 +93,7 @@ public class Bien extends AuditEntity{
 
     @ElementCollection
     @CollectionTable(name = "bien_photos", joinColumns = @JoinColumn(name = "bien_id"))
-    @Column(name = "photo_url")
+    @Column(name = "photo_url",columnDefinition = "TEXT",length = 5000)
     @Builder.Default
     private List<String> photos = new ArrayList<>();
 

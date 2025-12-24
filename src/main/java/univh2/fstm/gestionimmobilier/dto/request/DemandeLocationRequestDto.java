@@ -2,13 +2,14 @@ package univh2.fstm.gestionimmobilier.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class DemandeLocationRequestDto {
 
     @NotNull(message = "Le bien est obligatoire")

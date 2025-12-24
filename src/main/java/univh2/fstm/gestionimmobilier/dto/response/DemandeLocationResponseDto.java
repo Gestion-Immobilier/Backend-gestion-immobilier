@@ -1,16 +1,19 @@
 package univh2.fstm.gestionimmobilier.dto.response;
 
+import lombok.experimental.SuperBuilder;
+import univh2.fstm.gestionimmobilier.dto.AuditDto;
 import univh2.fstm.gestionimmobilier.model.StatutDemande;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class DemandeLocationResponseDto {
+@SuperBuilder
+public class DemandeLocationResponseDto extends AuditDto {
 
     private Long id;
 
@@ -33,6 +36,4 @@ public class DemandeLocationResponseDto {
     private String motifRefus;
     private LocalDateTime dateTraitement;
 
-    private LocalDateTime dateCreation;
-    private LocalDateTime dateModification;
 }
