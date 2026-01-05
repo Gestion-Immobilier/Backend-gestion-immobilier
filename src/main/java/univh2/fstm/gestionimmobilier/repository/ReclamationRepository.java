@@ -77,7 +77,7 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, Long> 
     @Query("SELECT r FROM Reclamation r WHERE " +
            "(:statut IS NULL OR r.statut = :statut) AND " +
            "(:priorite IS NULL OR r.priorite = :priorite) AND " +
-           "(:type IS NULL OR r.type = :type) " +
+           "(:type IS NULL OR r.typeReclamation = :type) " +
            "ORDER BY r.createdOn DESC")
     List<Reclamation> findByFilters(
             @Param("statut") StatutReclamation statut,

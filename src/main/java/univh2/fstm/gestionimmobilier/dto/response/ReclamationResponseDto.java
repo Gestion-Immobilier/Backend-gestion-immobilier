@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import univh2.fstm.gestionimmobilier.dto.AuditDto;
 import univh2.fstm.gestionimmobilier.dto.FileDto;
 import univh2.fstm.gestionimmobilier.model.PrioriteReclamation;
 import univh2.fstm.gestionimmobilier.model.StatutReclamation;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class ReclamationResponseDto extends FileDto {
+public class ReclamationResponseDto extends AuditDto {
     private Long id;
     private String reference;
 

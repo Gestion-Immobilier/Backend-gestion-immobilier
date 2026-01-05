@@ -143,7 +143,7 @@ public class ReclamationServiceImpl implements ReclamationService {
             reclamation.setPriorite(requestDto.getPriorite());
         }
         if (requestDto.getTypeReclamation() != null) {
-            reclamation.setType(requestDto.getTypeReclamation());
+            reclamation.setTypeReclamation(requestDto.getTypeReclamation());
         }
 
         Reclamation updated = reclamationRepository.save(reclamation);
@@ -561,12 +561,18 @@ public class ReclamationServiceImpl implements ReclamationService {
         }
         return filename.substring(filename.lastIndexOf("."));
     }
-
     private String extractUuidFromUrl(String url) {
-        // Extraire l'UUID depuis l'URL MinIO
-        // Format: http://localhost:9000
+        try {
+            // Supprimer le domaine (http://localhost:9000/)
+            String path = url.substring(url.indexOf("/reclamations/"));
 
-        return null;
+            // Le path est maintenant: /reclamations/reclamations/UUID-123e4567-e89b.jpg
+            return path;
+
+        } catch (Exception e) {
+            log.error("❌ Erreur extraction UUID depuis URL: {}", url, e);
+            throw new BadRequestException("Format d'URL invalide");
+        }
     }
 
 }
