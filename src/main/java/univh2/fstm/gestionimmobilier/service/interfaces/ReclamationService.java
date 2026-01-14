@@ -188,4 +188,10 @@ public interface ReclamationService {
      * Délai moyen de résolution (en jours)
      */
     Double getDelaiResolutionMoyen();
+    // AJOUTER DANS ReclamationService.java
+    ReclamationResponseDto repondreReclamation(Long id, String message, String nouveauStatut, String solution);
+
+    void notifierLocataire(Long id, String message);
+
+    List<ReclamationResponseDto> getReclamationsAvecDetails();
 }

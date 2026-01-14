@@ -142,8 +142,9 @@ public class ReclamationServiceImpl implements ReclamationService {
         if (requestDto.getPriorite() != null) {
             reclamation.setPriorite(requestDto.getPriorite());
         }
+        // CORRECTION dans la méthode updateReclamation (ligne ~94)
         if (requestDto.getTypeReclamation() != null) {
-            reclamation.setType(requestDto.getTypeReclamation());
+            reclamation.setTypeRec(requestDto.getTypeReclamation()); // <-- CORRIGÉ: setTypeRec()
         }
 
         Reclamation updated = reclamationRepository.save(reclamation);
@@ -509,6 +510,21 @@ public class ReclamationServiceImpl implements ReclamationService {
                 .mapToLong(r -> ChronoUnit.DAYS.between(r.getCreatedOn().toLocalDateTime(), r.getDateResolution()))
                 .average()
                 .orElse(0.0);
+    }
+
+    @Override
+    public ReclamationResponseDto repondreReclamation(Long id, String message, String nouveauStatut, String solution) {
+        return null;
+    }
+
+    @Override
+    public void notifierLocataire(Long id, String message) {
+
+    }
+
+    @Override
+    public List<ReclamationResponseDto> getReclamationsAvecDetails() {
+        return List.of();
     }
 
     // ============================

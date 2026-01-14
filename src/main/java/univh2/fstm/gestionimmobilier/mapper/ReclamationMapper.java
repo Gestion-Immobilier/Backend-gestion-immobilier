@@ -20,7 +20,7 @@ public interface ReclamationMapper {
     // ============================
     // 1. Entité → Response DTO
     // ============================
-    @Mapping(source = "type", target = "typeReclamation")
+    @Mapping(source = "typeRec", target = "typeReclamation")  // CORRIGÉ: typeRec → typeReclamation
     @Mapping(source = "contrat", target = "contrat")
     ReclamationResponseDto toResponseDto(Reclamation reclamation);
 
@@ -40,14 +40,13 @@ public interface ReclamationMapper {
     @Mapping(target = "photos", ignore = true)
     @Mapping(target = "uuid", ignore = true)
     @Mapping(target = "name", ignore = true)
-    @Mapping(target = "type", ignore = true)
     @Mapping(target = "size", ignore = true)
     @Mapping(target = "downloadUri", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "updatedOn", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(source = "typeReclamation", target = "type")
+    @Mapping(source = "typeReclamation", target = "typeRec")  // CORRIGÉ: typeReclamation → typeRec
     Reclamation toEntity(ReclamationRequestDto requestDto);
 
     // ============================

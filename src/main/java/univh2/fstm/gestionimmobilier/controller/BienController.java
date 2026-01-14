@@ -27,6 +27,7 @@ import univh2.fstm.gestionimmobilier.dto.request.BienValidationDto;
 import univh2.fstm.gestionimmobilier.model.StatutBien;
 import univh2.fstm.gestionimmobilier.model.StatutValidation;
 import univh2.fstm.gestionimmobilier.model.TypeBien;
+import univh2.fstm.gestionimmobilier.service.impl.BienServiceImpl;
 import univh2.fstm.gestionimmobilier.service.interfaces.BienService;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -55,7 +57,7 @@ public class BienController {
     public ResponseEntity<BienResponseDto> creerBien(@Parameter(description = "Données du bien au format JSON", required = true)
                                                          @RequestParam("bien") String bienJson,
                                                      @Parameter(description = "Photos du bien", required = false)
-                                                         @RequestParam("photos") List<MultipartFile> photos){
+                                                         @RequestParam(value="photos",required = false) List<MultipartFile> photos){
         log.info("POST /api/v1/biens - Creation d'un bien");
         try {
             // Désérialiser le JSON
@@ -341,11 +343,74 @@ public class BienController {
 
 
 
+    // ========== AJOUT: Nouvel endpoint avec fallback ==========
+    @GetMapping("/recherche/avancee-safe")
+    @Operation(summary = "Recherche avancée sécurisée", description = "Version avec fallback en cas d'erreur")
+    public ResponseEntity<List<BienResponseDto>> rechercheAvanceeSafe(
+            @Parameter(description = "Ville (optionnel)")
+            @RequestParam(required = false) String ville,
 
+            @Parameter(description = "Type de bien (optionnel)")
+            @RequestParam(required = false) TypeBien typeBien,
 
+            @Parameter(description = "Prix minimum (optionnel)")
+            @RequestParam(required = false) BigDecimal prixMin,
 
+            @Parameter(description = "Prix maximum (optionnel)")
+            @RequestParam(required = false) BigDecimal prixMax) {
 
+        log.info("📥 GET /api/v1/biens/recherche/avancee-safe - Filtres: ville={}, type={}, prix={}-{}",
+                ville, typeBien, prixMin, prixMax);
 
+        try {
+            // Utiliser la nouvelle méthode avec fallback
+            List<BienResponseDto> biens;
 
+            if (bienService instanceof BienServiceImpl) {
+                biens = ((BienServiceImpl) bienService).rechercheAvanceeAvecFallback(
+                        ville, typeBien, prixMin, prixMax
+                );
+            } else {
+                // Fallback: utiliser l'ancienne méthode avec try-catch
+                biens = bienService.rechercheAvancee(ville, typeBien, prixMin, prixMax);
+            }
+
+            return ResponseEntity.ok(biens);
+
+        } catch (Exception e) {
+            log.error("❌ Erreur critique dans recherche avancée: {}", e.getMessage());
+
+            // Fallback final: retourner les biens publics
+            List<BienResponseDto> biensPublics = bienService.getBiensPublics();
+
+            // Appliquer des filtres simples localement
+            List<BienResponseDto> filtered = biensPublics.stream()
+                    .filter(b -> {
+                        boolean matches = true;
+
+                        if (ville != null && !ville.isEmpty()) {
+                            matches = matches && (b.getVille() != null &&
+                                    b.getVille().toLowerCase().contains(ville.toLowerCase()));
+                        }
+
+                        if (typeBien != null) {
+                            matches = matches && (b.getTypeBien() == typeBien);
+                        }
+
+                        if (prixMin != null) {
+                            matches = matches && (b.getLoyerMensuel().compareTo(prixMin) >= 0);
+                        }
+
+                        if (prixMax != null) {
+                            matches = matches && (b.getLoyerMensuel().compareTo(prixMax) <= 0);
+                        }
+
+                        return matches;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(filtered);
+        }
+    }
 
 }

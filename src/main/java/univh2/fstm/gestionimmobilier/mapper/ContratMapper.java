@@ -45,7 +45,7 @@ public interface ContratMapper {
     @Mapping(target = "uuid", ignore = true)
     @Mapping(target = "name", ignore = true)
     @Mapping(target = "downloadUri", ignore = true)
-    @Mapping(target = "type", ignore = true)
+//    @Mapping(target = "type", ignore = true)
     @Mapping(target = "size", ignore = true)
     Contrat toEntity(ContratRequestDto dto);
 

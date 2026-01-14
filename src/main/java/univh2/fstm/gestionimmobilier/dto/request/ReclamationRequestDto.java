@@ -26,7 +26,6 @@ public class ReclamationRequestDto extends FileDto {
     private Long contratId;
 
 
-
     @NotNull(message = "Le type de réclamation est obligatoire")
     private TypeReclamation typeReclamation;
 

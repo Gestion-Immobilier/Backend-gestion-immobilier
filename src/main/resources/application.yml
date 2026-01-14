@@ -18,9 +18,9 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    url: jdbc:postgresql://localhost:5432/gestion_immobilier
-    username: admin
-    password: admin123
+    url: jdbc:postgresql://localhost:5432/PlatformeImmobiliere
+    username: postgres
+    password: hayat
     driver-class-name: org.postgresql.Driver
 
     security:
@@ -57,7 +57,7 @@ ssl-enabled: ${UPLOAD_SSL:false}
 minio:
   url: ${MINIO_URL:http://127.0.0.1:9000}
   access-key: ${MINIO_ACCESS_KEY:admin}
-  secret-key: ${MINIO_SECRET_KEY:admin123}
+  secret-key: ${MINIO_SECRET_KEY:password123}
   bucket-temp: ${MINIO_BUCKET_TEMP:temp}
   bucket-contrat: ${MINIO_BUCKET_CONTRAT:cnd-contrat}
   bucket-quittance: ${MINIO_BUCKET_QUITTANCE:cnd-quittance}

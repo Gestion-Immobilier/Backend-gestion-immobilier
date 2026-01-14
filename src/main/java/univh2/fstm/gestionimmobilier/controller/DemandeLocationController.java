@@ -10,13 +10,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import univh2.fstm.gestionimmobilier.dto.request.DemandeLocationRequestDto;
 import univh2.fstm.gestionimmobilier.dto.request.DemandeLocationTraitementDto;
 import univh2.fstm.gestionimmobilier.dto.response.DemandeLocationResponseDto;
 import univh2.fstm.gestionimmobilier.model.StatutDemande;
+import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
 import univh2.fstm.gestionimmobilier.service.interfaces.DemandeLocationService;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +34,7 @@ import java.util.Map;
 public class DemandeLocationController {
 
     private final DemandeLocationService demandeService;
+    private final PersonneRepository personneRepository;
 
     // ========================================
     // CRÉATION ET CONSULTATION
@@ -67,19 +73,56 @@ public class DemandeLocationController {
         return ResponseEntity.ok(demandes);
     }
 
+    private Long getCurrentLocataireId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getId(); // Retourne l'ID de l'utilisateur connecté
+        }
+        return null;
+    }
+
+    // ========================================
+    // MODIFIEZ LA MÉTHODE getMesDemandes()
+    // ========================================
+
     @GetMapping("/mes-demandes")
     @PreAuthorize("hasRole('LOCATAIRE')")
     @Operation(summary = "Mes demandes", description = "Demandes du locataire connecté")
     public ResponseEntity<List<DemandeLocationResponseDto>> getMesDemandes() {
         log.info("📥 GET /api/v1/demandes-location/mes-demandes");
 
-        // TODO: Récupérer l'ID du locataire connecté via SecurityContext
-        Long locataireId = null;  // À implémenter
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        List<DemandeLocationResponseDto> demandes = demandeService.getMesDemandes(locataireId);
+        if (authentication == null) {
+            log.error("❌ Authentication est NULL");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        log.info("👤 Authentifié en tant que: {}", authentication.getName());
+
+        // Récupérer l'ID depuis l'email via PersonneRepository
+        String email = authentication.getName();
+        Long userId = personneRepository.findByEmail(email)
+                .map(personne -> {
+                    log.info("✅ Personne trouvée: ID={}, Nom={} {}, Email={}",
+                            personne.getId(), personne.getFirstName(), personne.getLastName(), personne.getEmail());
+                    return personne.getId();
+                })
+                .orElse(null);
+
+        if (userId == null) {
+            log.error("❌ Aucun utilisateur trouvé avec l'email: {}", email);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.emptyList());
+        }
+
+        log.info("🆔 ID utilisateur pour la recherche: {}", userId);
+        List<DemandeLocationResponseDto> demandes = demandeService.getMesDemandes(userId);
+        log.info("✅ {} demandes trouvées pour userId {}", demandes.size(), userId);
+
         return ResponseEntity.ok(demandes);
     }
-
     // ========================================
     // TRAITEMENT (ADMIN)
     // ========================================

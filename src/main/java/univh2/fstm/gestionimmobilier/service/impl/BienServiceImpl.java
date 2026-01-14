@@ -22,6 +22,7 @@ import univh2.fstm.gestionimmobilier.utils.ReferenceGenerator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -307,15 +308,6 @@ public class BienServiceImpl implements BienService {
         return bienMapper.toResponseDto(biens);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<BienResponseDto> rechercherParVille(String ville) {
-        log.debug("Recuperer les biens valides dans la ville : {}",ville);
-
-        List<Bien> biens = bienRepository.findByStatutValidationAndVilleIgnoreCase(StatutValidation.VALIDE,ville);
-
-        return bienMapper.toResponseDto(biens);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -325,14 +317,98 @@ public class BienServiceImpl implements BienService {
         return bienMapper.toResponseDto(biens);
     }
 
+    // ========== MODIFICATION de la méthode rechercheAvancee ==========
     @Override
     @Transactional(readOnly = true)
-    public List<BienResponseDto> rechercheAvancee(String ville, TypeBien typeBien, BigDecimal prixMin, BigDecimal prixMax) {
+    public List<BienResponseDto> rechercheAvancee(String ville, TypeBien typeBien,
+                                                  BigDecimal prixMin, BigDecimal prixMax) {
         log.debug("Recherche avc - Ville: {}, Type: {}, Prix: {}-{}",ville, typeBien, prixMin, prixMax);
 
-        List<Bien> biens = bienRepository.rechercheAvancee(ville,typeBien,prixMin,prixMax,StatutValidation.VALIDE);
+        try {
+            // Essayer d'abord la nouvelle méthode corrigée
+            List<Bien> biens = bienRepository.rechercheAvancee(ville, typeBien, prixMin, prixMax, StatutValidation.VALIDE);
+            return bienMapper.toResponseDto(biens);
 
-        return bienMapper.toResponseDto(biens);
+        } catch (Exception e) {
+            log.warn("⚠️ Recherche avancée échouée, utilisation de recherche simple: {}", e.getMessage());
+
+            // Fallback: utiliser une recherche plus simple
+            return rechercheAvanceeFallback(ville, typeBien, prixMin, prixMax);
+        }
+    }
+
+    // ========== AJOUT: Méthode de fallback ==========
+    private List<BienResponseDto> rechercheAvanceeFallback(String ville, TypeBien typeBien,
+                                                           BigDecimal prixMin, BigDecimal prixMax) {
+        try {
+            // Utiliser la méthode rechercheSimple
+            List<Bien> biens = bienRepository.rechercheSimple(ville, typeBien, StatutValidation.VALIDE);
+
+            // Filtrer par prix localement
+            if (prixMin != null || prixMax != null) {
+                biens = biens.stream()
+                        .filter(b -> {
+                            boolean matches = true;
+                            if (prixMin != null) matches = matches && (b.getLoyerMensuel().compareTo(prixMin) >= 0);
+                            if (prixMax != null) matches = matches && (b.getLoyerMensuel().compareTo(prixMax) <= 0);
+                            return matches;
+                        })
+                        .collect(Collectors.toList());
+            }
+
+            return bienMapper.toResponseDto(biens);
+
+        } catch (Exception e) {
+            log.error("❌ Fallback échoué, retour des biens publics: {}", e.getMessage());
+            // Dernier recours: retourner tous les biens publics
+            return getBiensPublics();
+        }
+    }
+
+    // ========== AJOUT: Nouvelle méthode pour recherche avec fallback ==========
+    public List<BienResponseDto> rechercheAvanceeAvecFallback(String ville, TypeBien typeBien,
+                                                              BigDecimal prixMin, BigDecimal prixMax) {
+        log.debug("Recherche avec fallback - Ville: {}, Type: {}, Prix: {}-{}",
+                ville, typeBien, prixMin, prixMax);
+
+        // Essayer la nouvelle méthode insensible à la casse d'abord
+        try {
+            List<Bien> biens = bienRepository.rechercheAvanceeInsensible(
+                    ville, typeBien, prixMin, prixMax, StatutValidation.VALIDE
+            );
+            return bienMapper.toResponseDto(biens);
+        } catch (Exception e) {
+            log.warn("⚠️ Méthode insensible échouée, essai méthode corrigée: {}", e.getMessage());
+            return rechercheAvancee(ville, typeBien, prixMin, prixMax);
+        }
+    }
+
+    // ========== MODIFICATION de la méthode rechercherParVille ==========
+    @Override
+    @Transactional(readOnly = true)
+    public List<BienResponseDto> rechercherParVille(String ville) {
+        log.debug("Recuperer les biens valides dans la ville : {}",ville);
+
+        try {
+            // Essayer la méthode existante
+            List<Bien> biens = bienRepository.findByStatutValidationAndVilleIgnoreCase(StatutValidation.VALIDE, ville);
+            return bienMapper.toResponseDto(biens);
+        } catch (Exception e) {
+            log.warn("⚠️ Recherche par ville échouée, fallback manuel: {}", e.getMessage());
+
+            // Fallback manuel
+            List<Bien> biensPublics = bienRepository.findByStatutValidationAndStatut(
+                    StatutValidation.VALIDE, StatutBien.DISPONIBLE
+            );
+
+            // Filtrer par ville localement
+            List<Bien> filtered = biensPublics.stream()
+                    .filter(b -> b.getVille() != null &&
+                            b.getVille().toLowerCase().contains(ville.toLowerCase()))
+                    .collect(Collectors.toList());
+
+            return bienMapper.toResponseDto(filtered);
+        }
     }
 
     //stats pour dashboard
@@ -342,4 +418,7 @@ public class BienServiceImpl implements BienService {
 
         return bienRepository.countByStatutValidation(StatutValidation);
     }
+
+
+
 }

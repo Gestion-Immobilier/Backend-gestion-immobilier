@@ -35,7 +35,7 @@ public class Reclamation extends FileEntity{
     @Enumerated(EnumType.STRING)
     @Column(name = "type_reclamation", nullable = false, length = 20)
     @NotNull(message = "Le type de reclamation est obligatoire")
-    private TypeReclamation type;
+    private TypeReclamation typeRec;
 
     @Column(nullable = false, length = 150)
     @NotBlank(message = "Le titre est obligatoire")
