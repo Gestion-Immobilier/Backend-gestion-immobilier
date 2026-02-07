@@ -4,5 +4,6 @@ public enum StatutBien {
     DISPONIBLE,
     LOUE,
     EN_MAINTENANCE,
-    INDISPONIBLE
+    INDISPONIBLE,
+    EN_ATTENTE
 }
