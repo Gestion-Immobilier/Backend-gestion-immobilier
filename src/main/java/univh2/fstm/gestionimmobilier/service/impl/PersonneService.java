@@ -82,5 +82,13 @@ public class PersonneService {
         return personneRepository.findByLastName(lastName);
     }
 
-
+    public Personne validerLocataire(Long id) {
+        Personne personne = personneRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Locataire introuvable avec l'ID: " + id));
+        if (personne.getType() != Type.LOCATAIRE) {
+            throw new RuntimeException("La personne avec l'ID " + id + " n'est pas un locataire.");
+        }
+        personne.setVerified(true);
+        return personneRepository.save(personne);
+    }
 }

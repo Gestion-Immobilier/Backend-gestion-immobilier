@@ -121,7 +121,7 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, Long> 
     // Réclamations en retard (> 48h sans prise en charge)
     // ============================
     @Query("SELECT r FROM Reclamation r WHERE r.statut = 'NOUVELLE' " +
-           "AND r.createdOn < :datelimite " +
+           "AND r.createdOn < :dateLimit " +
            "ORDER BY r.createdOn ASC")
     List<Reclamation> findReclamationsEnRetard(@Param("dateLimit") LocalDateTime dateLimit);
     

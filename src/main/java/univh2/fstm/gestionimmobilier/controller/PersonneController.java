@@ -8,6 +8,10 @@ import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
 import univh2.fstm.gestionimmobilier.service.impl.PersonneService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import java.util.List;
 
 @RestController
@@ -102,6 +106,18 @@ public class PersonneController {
         return personneService.findByLastName(lastName);
     }
 
+    // ----------------- Validation Locataire -----------------
 
+    @PutMapping("/{id}/valider-locataire")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Valider un locataire", description = "Vérifie et valide le compte d'un locataire (ADMIN uniquement)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Locataire validé avec succès"),
+            @ApiResponse(responseCode = "404", description = "Locataire introuvable"),
+            @ApiResponse(responseCode = "400", description = "L'utilisateur n'est pas un locataire")
+    })
+    public Personne validerLocataire(@PathVariable Long id) {
+        return personneService.validerLocataire(id);
+    }
 
 }
