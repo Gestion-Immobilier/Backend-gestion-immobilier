@@ -13,6 +13,7 @@ import univh2.fstm.gestionimmobilier.model.Personne;
 import univh2.fstm.gestionimmobilier.model.Type;
 import univh2.fstm.gestionimmobilier.repository.PersonneRepository;
 import univh2.fstm.gestionimmobilier.security.JwtService;
+import univh2.fstm.gestionimmobilier.model.RefreshToken;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PersonneMapper mapper;
+    private final RefreshTokenService refreshTokenService;
 
     // REGISTER
     public AuthResponse register(RegisterRequest request) {
@@ -51,9 +53,12 @@ public class AuthService {
         // -----------------------------------------
 
         p.setPassword(passwordEncoder.encode(request.getPassword()));
-        repo.save(p);
+        Personne savedUser = repo.save(p);
 
-        return new AuthResponse(jwtService.generateToken(p));
+        String jwtToken = jwtService.generateToken(savedUser);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser.getId());
+
+        return new AuthResponse(jwtToken, refreshToken.getToken());
     }
 
     // LOGIN
@@ -70,7 +75,8 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String token = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, refreshToken.getToken());
     }
 }

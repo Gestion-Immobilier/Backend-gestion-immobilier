@@ -15,6 +15,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.Validation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -272,6 +276,20 @@ public class BienController {
         return ResponseEntity.ok(biens);
     }
 
+    @GetMapping("/publics/paged")
+    @Operation(summary = "Biens publics (paginé)", description = "Biens validés et disponibles avec pagination")
+    public ResponseEntity<Page<BienResponseDto>> getBiensPublicsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/biens/publics/paged");
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BienResponseDto> biens = bienService.getBiensPublicsPagines(pageable);
+        return ResponseEntity.ok(biens);
+    }
+
 
 
     @GetMapping("/recherche/ville")
@@ -281,6 +299,22 @@ public class BienController {
 
         log.info("📥 GET /api/v1/biens/recherche/ville?ville={}", ville);
         List<BienResponseDto> biens = bienService.rechercherParVille(ville);
+        return ResponseEntity.ok(biens);
+    }
+
+    @GetMapping("/recherche/ville/paged")
+    @Operation(summary = "Rechercher par ville (paginé)")
+    public ResponseEntity<Page<BienResponseDto>> rechercherParVillePaged(
+            @RequestParam String ville,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        log.info("📥 GET /api/v1/biens/recherche/ville/paged?ville={}", ville);
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BienResponseDto> biens = bienService.rechercherParVillePaginee(ville, pageable);
         return ResponseEntity.ok(biens);
     }
 
@@ -317,6 +351,35 @@ public class BienController {
                 ville, typeBien, prixMin, prixMax);
 
         List<BienResponseDto> biens = bienService.rechercheAvancee(ville, typeBien, prixMin, prixMax);
+        return ResponseEntity.ok(biens);
+    }
+
+    @GetMapping("/recherche/avancee/paged")
+    @Operation(summary = "Recherche avancée (paginé)", description = "Filtres multiples avec pagination")
+    public ResponseEntity<Page<BienResponseDto>> rechercheAvanceePaged(
+            @Parameter(description = "Ville (optionnel)")
+            @RequestParam(required = false) String ville,
+
+            @Parameter(description = "Type de bien (optionnel)")
+            @RequestParam(required = false) TypeBien typeBien,
+
+            @Parameter(description = "Prix minimum (optionnel)")
+            @RequestParam(required = false) BigDecimal prixMin,
+
+            @Parameter(description = "Prix maximum (optionnel)")
+            @RequestParam(required = false) BigDecimal prixMax,
+            
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        log.info("📥 GET /api/v1/biens/recherche/avancee/paged - Filtres: ville={}, type={}, prix={}-{}",
+                ville, typeBien, prixMin, prixMax);
+
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BienResponseDto> biens = bienService.rechercheAvanceePaginee(ville, typeBien, prixMin, prixMax, pageable);
         return ResponseEntity.ok(biens);
     }
 

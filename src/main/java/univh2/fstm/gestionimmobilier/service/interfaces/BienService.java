@@ -1,5 +1,7 @@
 package univh2.fstm.gestionimmobilier.service.interfaces;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import univh2.fstm.gestionimmobilier.dto.request.BienRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.BienResponseDto;
@@ -36,13 +38,25 @@ public interface BienService {
     // Recherche pour les clients
 
     List<BienResponseDto> getBiensPublics();
+    Page<BienResponseDto> getBiensPublicsPagines(Pageable pageable);
+    
     List<BienResponseDto> rechercherParVille(String ville);
+    Page<BienResponseDto> rechercherParVillePaginee(String ville, Pageable pageable);
+    
     List<BienResponseDto> rechercherParType(TypeBien typeBien);
+    
     List<BienResponseDto> rechercheAvancee(
             String ville,
             TypeBien typeBien,
             BigDecimal prixMin,
             BigDecimal prixMax
+    );
+    Page<BienResponseDto> rechercheAvanceePaginee(
+            String ville,
+            TypeBien typeBien,
+            BigDecimal prixMin,
+            BigDecimal prixMax,
+            Pageable pageable
     );
 
     long compterBiensParStatutValidation(StatutValidation statutValidation);

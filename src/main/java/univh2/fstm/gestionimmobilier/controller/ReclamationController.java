@@ -7,6 +7,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -133,6 +137,25 @@ public class ReclamationController {
     public ResponseEntity<List<ReclamationResponseDto>> getAllReclamations() {
         log.info("📥 GET /api/v1/reclamations");
         List<ReclamationResponseDto> reclamations = reclamationService.getAllReclamations();
+        return ResponseEntity.ok(reclamations);
+    }
+
+    @GetMapping("/paged")
+    @PreAuthorize("hasAnyRole('PROPRIETAIRE', 'ADMIN')")
+    @Operation(summary = "Récupérer toutes les réclamations (paginé)", description = "ADMIN et PROPRIETAIRE uniquement, avec pagination")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Page récupérée")
+    })
+    public ResponseEntity<Page<ReclamationResponseDto>> getAllReclamationsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        
+        log.info("📥 GET /api/v1/reclamations/paged");
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ReclamationResponseDto> reclamations = reclamationService.getAllReclamationsPaged(pageable);
         return ResponseEntity.ok(reclamations);
     }
 

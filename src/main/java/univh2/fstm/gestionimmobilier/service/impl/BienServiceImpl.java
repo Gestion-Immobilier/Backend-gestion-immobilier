@@ -3,6 +3,8 @@ package univh2.fstm.gestionimmobilier.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -309,12 +311,28 @@ public class BienServiceImpl implements BienService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<BienResponseDto> getBiensPublicsPagines(Pageable pageable) {
+        log.debug("Recuperer les biens valides et dispo - paginé");
+        Page<Bien> biensPage = bienRepository.findByStatutValidationAndStatut(StatutValidation.VALIDE, StatutBien.DISPONIBLE, pageable);
+        return biensPage.map(bienMapper::toResponseDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<BienResponseDto> rechercherParVille(String ville) {
         log.debug("Recuperer les biens valides dans la ville : {}",ville);
 
         List<Bien> biens = bienRepository.findByStatutValidationAndVilleIgnoreCase(StatutValidation.VALIDE,ville);
 
         return bienMapper.toResponseDto(biens);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BienResponseDto> rechercherParVillePaginee(String ville, Pageable pageable) {
+        log.debug("Recuperer les biens valides dans la ville : {} - paginé", ville);
+        Page<Bien> biensPage = bienRepository.findByStatutValidationAndVilleIgnoreCase(StatutValidation.VALIDE, ville, pageable);
+        return biensPage.map(bienMapper::toResponseDto);
     }
 
     @Override
@@ -333,6 +351,14 @@ public class BienServiceImpl implements BienService {
         List<Bien> biens = bienRepository.rechercheAvancee(ville,typeBien,prixMin,prixMax,StatutValidation.VALIDE);
 
         return bienMapper.toResponseDto(biens);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BienResponseDto> rechercheAvanceePaginee(String ville, TypeBien typeBien, BigDecimal prixMin, BigDecimal prixMax, Pageable pageable) {
+        log.debug("Recherche avc - Ville: {}, Type: {}, Prix: {}-{} - paginé", ville, typeBien, prixMin, prixMax);
+        Page<Bien> biensPage = bienRepository.rechercheAvanceePageable(ville, typeBien, prixMin, prixMax, StatutValidation.VALIDE, pageable);
+        return biensPage.map(bienMapper::toResponseDto);
     }
 
     //stats pour dashboard

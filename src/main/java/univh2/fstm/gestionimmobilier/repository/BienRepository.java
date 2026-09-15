@@ -1,5 +1,7 @@
 package univh2.fstm.gestionimmobilier.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +20,10 @@ public interface BienRepository extends JpaRepository<Bien, Long> {
 
     Optional<Bien> findBienByReference(String reference);
     List<Bien> findByStatutValidationAndStatut(StatutValidation statutValidation,StatutBien statut);
+    Page<Bien> findByStatutValidationAndStatut(StatutValidation statutValidation, StatutBien statut, Pageable pageable);
+    
     List<Bien> findByStatutValidationAndVilleIgnoreCase(StatutValidation statutValidation, String ville);
+    Page<Bien> findByStatutValidationAndVilleIgnoreCase(StatutValidation statutValidation, String ville, Pageable pageable);
 
 
     @Query("SELECT b FROM Bien b WHERE b.statutValidation = :statutValidation " +
@@ -51,6 +56,21 @@ public interface BienRepository extends JpaRepository<Bien, Long> {
             @Param("prixMin") BigDecimal prixMin,
             @Param("prixMax") BigDecimal prixMax,
             @Param("statutValidation") StatutValidation statutValidation
+    );
+
+    @Query("SELECT b FROM Bien b WHERE " +
+            "(:ville IS NULL OR LOWER(b.ville) LIKE LOWER(CONCAT('%', :ville, '%'))) " +
+            "AND (:typeBien IS NULL OR b.typeBien = :typeBien) " +
+            "AND (:prixMin IS NULL OR b.loyerMensuel >= :prixMin) " +
+            "AND (:prixMax IS NULL OR b.loyerMensuel <= :prixMax) " +
+            "AND b.statutValidation = :statutValidation")
+    Page<Bien> rechercheAvanceePageable(
+            @Param("ville") String ville,
+            @Param("typeBien") TypeBien typeBien,
+            @Param("prixMin") BigDecimal prixMin,
+            @Param("prixMax") BigDecimal prixMax,
+            @Param("statutValidation") StatutValidation statutValidation,
+            Pageable pageable
     );
 
     List<Bien> findByStatutValidationAndTypeBien( StatutValidation statutValidation, TypeBien typeBien);

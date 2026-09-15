@@ -16,6 +16,10 @@ import jakarta.validation.Validation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -128,6 +132,21 @@ public class ContratController {
         List<ContratResponseDto> contrats = contratService.getAllContrats();
         return ResponseEntity.ok(contrats);
     }
+    
+    @GetMapping("/paged")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Récupérer tous les contrats (paginé)", description = "ADMIN uniquement, avec pagination")
+    public ResponseEntity<Page<ContratResponseDto>> getAllContratsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/paged");
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getAllContratsPaged(pageable);
+        return ResponseEntity.ok(contrats);
+    }
 
     // ========================================
     // FILTRES PAR UTILISATEUR
@@ -141,6 +160,22 @@ public class ContratController {
         List<ContratResponseDto> contrats = contratService.getContratsLocataire(locataireId);
         return ResponseEntity.ok(contrats);
     }
+    
+    @GetMapping("/locataire/{locataireId}/paged")
+    @PreAuthorize("hasRole('ADMIN') or @contratSecurityService.isLocataire(#locataireId)")
+    @Operation(summary = "Contrats d'un locataire (paginé)")
+    public ResponseEntity<Page<ContratResponseDto>> getContratsLocatairePaged(
+            @PathVariable Long locataireId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/locataire/{}/paged", locataireId);
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getContratsLocatairePaged(locataireId, pageable);
+        return ResponseEntity.ok(contrats);
+    }
 
     @GetMapping("/mes-contrats")
     @PreAuthorize("hasRole('LOCATAIRE')")
@@ -152,6 +187,23 @@ public class ContratController {
         List<ContratResponseDto> contrats = contratService.getContratsLocataire(locataireId);
         return ResponseEntity.ok(contrats);
     }
+    
+    @GetMapping("/mes-contrats/paged")
+    @PreAuthorize("hasRole('LOCATAIRE')")
+    @Operation(summary = "Mes contrats (paginé)", description = "Contrats du locataire connecté avec pagination")
+    public ResponseEntity<Page<ContratResponseDto>> getMesContratsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/mes-contrats/paged");
+
+        Long locataireId = securityUtils.getCurrentUserId();
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getContratsLocatairePaged(locataireId, pageable);
+        return ResponseEntity.ok(contrats);
+    }
 
     @GetMapping("/bien/{bienId}")
     @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaireDuBien(#bienId)")
@@ -159,6 +211,22 @@ public class ContratController {
     public ResponseEntity<List<ContratResponseDto>> getContratsBien(@PathVariable Long bienId) {
         log.info("📥 GET /api/v1/contrats/bien/{}", bienId);
         List<ContratResponseDto> contrats = contratService.getContratsBien(bienId);
+        return ResponseEntity.ok(contrats);
+    }
+    
+    @GetMapping("/bien/{bienId}/paged")
+    @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaireDuBien(#bienId)")
+    @Operation(summary = "Contrats d'un bien (paginé)", description = "Historique de location avec pagination")
+    public ResponseEntity<Page<ContratResponseDto>> getContratsBienPaged(
+            @PathVariable Long bienId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/bien/{}/paged", bienId);
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getContratsBienPaged(bienId, pageable);
         return ResponseEntity.ok(contrats);
     }
 
@@ -171,12 +239,44 @@ public class ContratController {
         return ResponseEntity.ok(contrats);
     }
 
+    @GetMapping("/proprietaire/{proprietaireId}/paged")
+    @PreAuthorize("hasRole('ADMIN') or @bienSecurityService.isProprietaire(#proprietaireId)")
+    @Operation(summary = "Contrats d'un propriétaire (paginé)")
+    public ResponseEntity<Page<ContratResponseDto>> getContratsProprietairePaged(
+            @PathVariable Long proprietaireId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/proprietaire/{}/paged", proprietaireId);
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getContratsProprietairePaged(proprietaireId, pageable);
+        return ResponseEntity.ok(contrats);
+    }
+
     @GetMapping("/statut/{statut}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Contrats par statut", description = "ADMIN uniquement")
     public ResponseEntity<List<ContratResponseDto>> getContratsByStatut(@PathVariable StatutContrat statut) {
         log.info("📥 GET /api/v1/contrats/statut/{}", statut);
         List<ContratResponseDto> contrats = contratService.getContratsByStatut(statut);
+        return ResponseEntity.ok(contrats);
+    }
+    
+    @GetMapping("/statut/{statut}/paged")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Contrats par statut (paginé)", description = "ADMIN uniquement")
+    public ResponseEntity<Page<ContratResponseDto>> getContratsByStatutPaged(
+            @PathVariable StatutContrat statut,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        log.info("📥 GET /api/v1/contrats/statut/{}/paged", statut);
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ContratResponseDto> contrats = contratService.getContratsByStatutPaged(statut, pageable);
         return ResponseEntity.ok(contrats);
     }
 

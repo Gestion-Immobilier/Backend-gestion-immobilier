@@ -3,6 +3,8 @@ package univh2.fstm.gestionimmobilier.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -188,6 +190,14 @@ public class ContratServiceImpl implements ContratService {
         List<Contrat> contrats = contratRepository.findAll();
         return contratMapper.toResponseDto(contrats);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ContratResponseDto> getAllContratsPaged(Pageable pageable) {
+        log.debug("📥 Récupération de tous les contrats (paginé)");
+        Page<Contrat> contrats = contratRepository.findAll(pageable);
+        return contrats.map(contratMapper::toResponseDto);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -196,6 +206,14 @@ public class ContratServiceImpl implements ContratService {
 
         List<Contrat> contrats = contratRepository.findByLocataireId(locataireId);
         return contratMapper.toResponseDto(contrats);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ContratResponseDto> getContratsLocatairePaged(Long locataireId, Pageable pageable) {
+        log.debug("📥 Récupération des contrats du locataire: {} (paginé)", locataireId);
+        Page<Contrat> contrats = contratRepository.findByLocataireId(locataireId, pageable);
+        return contrats.map(contratMapper::toResponseDto);
     }
 
     @Override
@@ -206,6 +224,14 @@ public class ContratServiceImpl implements ContratService {
         List<Contrat> contrats = contratRepository.findByBienId(bienId);
         return contratMapper.toResponseDto(contrats);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ContratResponseDto> getContratsBienPaged(Long bienId, Pageable pageable) {
+        log.debug("📥 Récupération des contrats du bien: {} (paginé)", bienId);
+        Page<Contrat> contrats = contratRepository.findByBienId(bienId, pageable);
+        return contrats.map(contratMapper::toResponseDto);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -215,6 +241,14 @@ public class ContratServiceImpl implements ContratService {
         List<Contrat> contrats = contratRepository.findByProprietaireId(proprietaireId);
         return contratMapper.toResponseDto(contrats);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ContratResponseDto> getContratsProprietairePaged(Long proprietaireId, Pageable pageable) {
+        log.debug("📥 Récupération des contrats du propriétaire: {} (paginé)", proprietaireId);
+        Page<Contrat> contrats = contratRepository.findByProprietaireId(proprietaireId, pageable);
+        return contrats.map(contratMapper::toResponseDto);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -223,6 +257,14 @@ public class ContratServiceImpl implements ContratService {
 
         List<Contrat> contrats = contratRepository.findByStatut(statut);
         return contratMapper.toResponseDto(contrats);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ContratResponseDto> getContratsByStatutPaged(StatutContrat statut, Pageable pageable) {
+        log.debug("📥 Récupération des contrats avec statut: {} (paginé)", statut);
+        Page<Contrat> contrats = contratRepository.findByStatut(statut, pageable);
+        return contrats.map(contratMapper::toResponseDto);
     }
 
     @Override

@@ -2,6 +2,8 @@ package univh2.fstm.gestionimmobilier.repository;
 
 import univh2.fstm.gestionimmobilier.model.Contrat;
 import univh2.fstm.gestionimmobilier.model.StatutContrat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,16 +30,19 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
      * Trouve tous les contrats d'un bien
      */
     List<Contrat> findByBienId(Long bienId);
+    Page<Contrat> findByBienId(Long bienId, Pageable pageable);
 
     /**
      * Trouve tous les contrats d'un locataire
      */
     List<Contrat> findByLocataireId(Long locataireId);
+    Page<Contrat> findByLocataireId(Long locataireId, Pageable pageable);
 
     /**
      * Trouve les contrats par statut
      */
     List<Contrat> findByStatut(StatutContrat statut);
+    Page<Contrat> findByStatut(StatutContrat statut, Pageable pageable);
 
     /**
      * Vérifie si un bien a un contrat ACTIF
@@ -65,4 +70,7 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
      */
     @Query("SELECT c FROM Contrat c WHERE c.bien.proprietaire.id = :proprietaireId")
     List<Contrat> findByProprietaireId(@Param("proprietaireId") Long proprietaireId);
+    
+    @Query("SELECT c FROM Contrat c WHERE c.bien.proprietaire.id = :proprietaireId")
+    Page<Contrat> findByProprietaireId(@Param("proprietaireId") Long proprietaireId, Pageable pageable);
 }

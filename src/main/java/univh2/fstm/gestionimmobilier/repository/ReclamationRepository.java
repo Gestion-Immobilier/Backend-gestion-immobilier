@@ -1,5 +1,7 @@
 package univh2.fstm.gestionimmobilier.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -142,6 +144,9 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, Long> 
     // ============================
     @Query("SELECT r FROM Reclamation r ORDER BY r.createdOn DESC")
     List<Reclamation> findAllReclamations();
+    
+    @Query("SELECT r FROM Reclamation r")
+    Page<Reclamation> findAllReclamations(Pageable pageable);
     
     // ============================
     // Recherche par mot-clé (titre ou description)

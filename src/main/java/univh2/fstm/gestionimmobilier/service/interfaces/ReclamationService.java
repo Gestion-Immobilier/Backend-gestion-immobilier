@@ -1,6 +1,8 @@
 package univh2.fstm.gestionimmobilier.service.interfaces;
 
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import univh2.fstm.gestionimmobilier.dto.request.ReclamationRequestDto;
 import univh2.fstm.gestionimmobilier.dto.response.ReclamationResponseDto;
@@ -50,9 +52,14 @@ public interface ReclamationService {
     // ============================
     
     /**
-     * Récupérer toutes les réclamations avec pagination
+     * Récupérer toutes les réclamations
      */
     List<ReclamationResponseDto> getAllReclamations();
+
+    /**
+     * Récupérer toutes les réclamations avec pagination
+     */
+    Page<ReclamationResponseDto> getAllReclamationsPaged(Pageable pageable);
     
     /**
      * Récupérer les réclamations d'un contrat
