@@ -34,6 +34,7 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
     private final PersonneRepository personneRepository;
     private final DemandeLocationMapper demandeMapper;
     private final JwtService jwtService;
+    private final NotificationService notificationService;
 
     @Override
     public DemandeLocationResponseDto creerDemande(DemandeLocationRequestDto requestDto) {
@@ -147,8 +148,8 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
 
         log.info("✅ Demande acceptée avec succès");
 
-        // TODO: Notifier le locataire
-        // notificationService.notifierDemandeAcceptee(demandeMiseAJour);
+        // ✅ Notifier le locataire par email (asynchrone — ne bloque pas la réponse)
+        notificationService.notifierDemandeAcceptee(demandeMiseAJour);
 
         return demandeMapper.toResponseDto(demandeMiseAJour);
     }
@@ -179,8 +180,8 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
 
         log.info("❌ Demande refusée avec succès");
 
-        // TODO: Notifier le locataire
-        // notificationService.notifierDemandeRefusee(demandeMiseAJour);
+        // ✅ Notifier le locataire par email (asynchrone — ne bloque pas la réponse)
+        notificationService.notifierDemandeRefusee(demandeMiseAJour);
 
         return demandeMapper.toResponseDto(demandeMiseAJour);
     }

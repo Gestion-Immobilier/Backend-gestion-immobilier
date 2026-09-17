@@ -243,4 +243,36 @@ public class PaymentService {
             return moisConcerne.plusMonths(1).withDayOfMonth(5);
         }
     }
+
+    // ==================== Stripe Support Methods ====================
+
+    /** Récupère un Payment par son ID ou lève une exception */
+    public Payment getPaymentById(Long paymentId) throws Exception {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new Exception("Paiement introuvable ! id=" + paymentId));
+    }
+
+    /** Sauvegarde le session ID Stripe sur le Payment */
+    public void saveStripeSessionId(Long paymentId, String sessionId) throws Exception {
+        Payment payment = getPaymentById(paymentId);
+        payment.setStripeSessionId(sessionId);
+        paymentRepository.save(payment);
+    }
+
+    /**
+     * Confirmé par le webhook Stripe : marque le paiement comme PAID,
+     * enregistre le paymentIntentId et la date de paiement.
+     */
+    public Payment confirmerPaiement(Long paymentId, String stripePaymentIntentId) throws Exception {
+        Payment payment = getPaymentById(paymentId);
+
+        payment.setStatus(PaymentStatus.PAID);
+        payment.setCapturedAt(LocalDateTime.now());
+        payment.setStripePaymentIntentId(stripePaymentIntentId);
+        // Référence de transaction lisible
+        payment.setReferenceTransaction("STRIPE-" + stripePaymentIntentId.substring(
+                Math.max(0, stripePaymentIntentId.length() - 10)));
+
+        return paymentRepository.save(payment);
+    }
 }

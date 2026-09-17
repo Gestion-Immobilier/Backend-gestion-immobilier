@@ -24,6 +24,17 @@ spring:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:5MB}
       max-request-size: ${MAX_REQUEST_SIZE:20MB}
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:changeme}
+    password: ${MAIL_PASSWORD:changeme}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 springdoc:
   api-docs:
@@ -54,3 +65,9 @@ minio:
   bucket-contrat: ${MINIO_BUCKET_CONTRAT:cnd-contrat}
   bucket-quittance: ${MINIO_BUCKET_QUITTANCE:cnd-quittance}
   bucket-bien: ${MINIO_BUCKET_BIEN:cnd-bien}
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_changeme}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_changeme}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:4200/paiement/succes}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:4200/paiement/annule}

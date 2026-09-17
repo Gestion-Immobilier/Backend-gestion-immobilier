@@ -70,6 +70,12 @@ public class Payment {
     @Column(name = "reference_transaction")
     private String referenceTransaction;
 
+    @Column(name = "stripe_session_id")
+    private String stripeSessionId;
+
+    @Column(name = "stripe_payment_intent_id")
+    private String stripePaymentIntentId;
+
     // Méthode pour générer une référence unique
     @PrePersist
     public void generateReference() {

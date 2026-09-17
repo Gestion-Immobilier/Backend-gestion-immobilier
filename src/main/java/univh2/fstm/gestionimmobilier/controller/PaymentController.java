@@ -1,5 +1,8 @@
 package univh2.fstm.gestionimmobilier.controller;
 
+import com.stripe.exception.StripeException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -9,16 +12,20 @@ import univh2.fstm.gestionimmobilier.dto.request.PaymentInitRequest;
 import univh2.fstm.gestionimmobilier.model.Payment;
 import univh2.fstm.gestionimmobilier.service.impl.PaymentService;
 import univh2.fstm.gestionimmobilier.service.impl.ReceiptService;
+import univh2.fstm.gestionimmobilier.service.impl.StripeService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/payments")
 @RequiredArgsConstructor
+@Tag(name = "Paiements", description = "Gestion des paiements de loyer")
 public class PaymentController {
 
     private final PaymentService paymentService;
     private final ReceiptService receiptService;
+    private final StripeService stripeService;
 
     @PostMapping("/init")
     public ResponseEntity<?> initPayment(@RequestBody PaymentInitRequest request) {
@@ -103,11 +110,40 @@ public class PaymentController {
     }
 
     @GetMapping("/receipt/{paymentId}")
+    @Operation(summary = "Télécharger la quittance PDF d'un paiement")
     public ResponseEntity<byte[]> downloadReceipt(@PathVariable Long paymentId) throws Exception {
         byte[] pdf = receiptService.loadReceipt(paymentId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=quittance_" + paymentId + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
+    }
+
+    /**
+     * Initie un paiement Stripe Checkout.
+     * Retourne une URL vers laquelle le frontend redirige le locataire.
+     */
+    @PostMapping("/{id}/checkout")
+    @Operation(summary = "Créer une session de paiement Stripe pour un paiement donné")
+    public ResponseEntity<?> checkout(@PathVariable Long id) {
+        try {
+            Payment payment = paymentService.getPaymentById(id);
+            String sessionId = stripeService.creerSessionPaiement(payment);
+            String checkoutUrl = stripeService.getCheckoutUrl(sessionId);
+
+            // Sauvegarder le sessionId sur le Payment
+            paymentService.saveStripeSessionId(id, sessionId);
+
+            return ResponseEntity.ok(Map.of(
+                    "checkoutUrl", checkoutUrl,
+                    "sessionId", sessionId
+            ));
+        } catch (StripeException e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Erreur Stripe : " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

@@ -45,6 +45,12 @@ dependencies {
     // Rate Limiting
     implementation 'com.bucket4j:bucket4j-core:8.10.1'
 
+    // Stripe — Paiement en ligne
+    implementation 'com.stripe:stripe-java:24.16.0'
+
+    // Spring Mail — Notifications email
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
 
