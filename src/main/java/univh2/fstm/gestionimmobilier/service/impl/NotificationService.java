@@ -24,7 +24,7 @@ public class NotificationService {
      * Notifie le locataire que sa demande de location a été acceptée.
      */
     @Async
-    public void notifierDemandeAcceptee(DemandeLocation demande) {
+    public void notifierDemandeAcceptee(String emailLocataire, String prenomLocataire, String referenceBien) {
         String sujet = "🏠 Votre demande de location a été acceptée !";
         String contenu = String.format(
                 "Bonjour %s,%n%n" +
@@ -32,17 +32,17 @@ public class NotificationService {
                 "Un contrat de location sera prochainement établi.%n%n" +
                 "Cordialement,%n" +
                 "L'équipe Gestion Immobilier",
-                demande.getLocataire().getFirstName(),
-                demande.getBien().getReference()
+                prenomLocataire,
+                referenceBien
         );
-        envoyerEmail(demande.getLocataire().getEmail(), sujet, contenu);
+        envoyerEmail(emailLocataire, sujet, contenu);
     }
 
     /**
      * Notifie le locataire que sa demande de location a été refusée.
      */
     @Async
-    public void notifierDemandeRefusee(DemandeLocation demande) {
+    public void notifierDemandeRefusee(String emailLocataire, String prenomLocataire, String referenceBien, String motifRefus) {
         String sujet = "❌ Votre demande de location a été refusée";
         String contenu = String.format(
                 "Bonjour %s,%n%n" +
@@ -51,11 +51,11 @@ public class NotificationService {
                 "N'hésitez pas à consulter d'autres biens disponibles sur notre plateforme.%n%n" +
                 "Cordialement,%n" +
                 "L'équipe Gestion Immobilier",
-                demande.getLocataire().getFirstName(),
-                demande.getBien().getReference(),
-                demande.getMotifRefus() != null ? demande.getMotifRefus() : "Non précisé"
+                prenomLocataire,
+                referenceBien,
+                motifRefus != null ? motifRefus : "Non précisé"
         );
-        envoyerEmail(demande.getLocataire().getEmail(), sujet, contenu);
+        envoyerEmail(emailLocataire, sujet, contenu);
     }
 
     /**
@@ -63,13 +63,15 @@ public class NotificationService {
      * avec la quittance PDF en pièce jointe.
      */
     @Async
-    public void notifierPaiementConfirme(Payment payment, byte[] quittancePdf) {
+    public void notifierPaiementConfirme(String emailLocataire, String prenomLocataire,
+                                         java.math.BigDecimal montantTotal, java.time.LocalDate moisConcerne,
+                                         String referencePaiement, byte[] quittancePdf) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(payment.getLocataire().getEmail());
-            helper.setSubject("✅ Confirmation de paiement — " + payment.getReference());
+            helper.setTo(emailLocataire);
+            helper.setSubject("✅ Confirmation de paiement — " + referencePaiement);
             helper.setText(String.format(
                     "Bonjour %s,%n%n" +
                     "Votre paiement de %.2f MAD pour le mois %s/%s a bien été reçu et confirmé.%n%n" +
@@ -77,27 +79,26 @@ public class NotificationService {
                     "Référence : %s%n%n" +
                     "Cordialement,%n" +
                     "L'équipe Gestion Immobilier",
-                    payment.getLocataire().getFirstName(),
-                    payment.getMontantTotal(),
-                    payment.getMoisConcerne().getMonthValue(),
-                    payment.getMoisConcerne().getYear(),
-                    payment.getReference()
+                    prenomLocataire,
+                    montantTotal,
+                    moisConcerne.getMonthValue(),
+                    moisConcerne.getYear(),
+                    referencePaiement
             ));
 
             if (quittancePdf != null && quittancePdf.length > 0) {
                 helper.addAttachment(
-                        "quittance_" + payment.getReference() + ".pdf",
+                        "quittance_" + referencePaiement + ".pdf",
                         new ByteArrayResource(quittancePdf)
                 );
             }
 
             mailSender.send(message);
-            log.info("📧 Email de confirmation de paiement envoyé à: {}", payment.getLocataire().getEmail());
+            log.info("📧 Email de confirmation de paiement envoyé à: {}", emailLocataire);
 
         } catch (MessagingException e) {
-            // IMPORTANT : Ne jamais faire échouer la transaction métier à cause d'un email raté
             log.error("❌ Échec envoi email de confirmation paiement à {}: {}",
-                    payment.getLocataire().getEmail(), e.getMessage());
+                    emailLocataire, e.getMessage());
         }
     }
 

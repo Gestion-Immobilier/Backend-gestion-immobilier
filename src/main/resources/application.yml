@@ -27,8 +27,8 @@ spring:
   mail:
     host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
     port: ${MAIL_PORT:2525}
-    username: ${MAIL_USERNAME:changeme}
-    password: ${MAIL_PASSWORD:changeme}
+    username: ${MAIL_USERNAME:0bdbc563fdcd08}
+    password: ${MAIL_PASSWORD:9b4263194d86a7}
     properties:
       mail:
         smtp:
@@ -67,7 +67,7 @@ minio:
   bucket-bien: ${MINIO_BUCKET_BIEN:cnd-bien}
 
 stripe:
-  secret-key: ${STRIPE_SECRET_KEY:sk_test_changeme}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_changeme}
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_51UGijnLdPyxjjheh7CO2ujvpeHi4IRuhuzWUMR2bAahKgB3UtAWv3zEYc4zYgRoN5wgDQhkCUYGai87Dz2YFiZl000MHR5J9gF}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_7a860046c6d045cc35df47e8b7229ea74ec61aa9ecc30aaca86c623576eccaca}
   success-url: ${STRIPE_SUCCESS_URL:http://localhost:4200/paiement/succes}
   cancel-url: ${STRIPE_CANCEL_URL:http://localhost:4200/paiement/annule}

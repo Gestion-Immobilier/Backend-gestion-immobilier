@@ -265,8 +265,8 @@ public class PaymentService {
      */
     public Payment confirmerPaiement(Long paymentId, String stripePaymentIntentId) throws Exception {
         Payment payment = getPaymentById(paymentId);
-
-        payment.setStatus(PaymentStatus.PAID);
+        
+        payment.setStatus(PaymentStatus.CAPTURED);
         payment.setCapturedAt(LocalDateTime.now());
         payment.setStripePaymentIntentId(stripePaymentIntentId);
         // Référence de transaction lisible

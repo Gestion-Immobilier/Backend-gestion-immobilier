@@ -59,9 +59,14 @@ public class WebhookController {
         // On écoute uniquement la confirmation de session complétée
         if ("checkout.session.completed".equals(event.getType())) {
             try {
-                Session session = (Session) event.getDataObjectDeserializer()
-                        .getObject()
-                        .orElseThrow(() -> new RuntimeException("Impossible de désérialiser la session Stripe"));
+                com.stripe.model.EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+                Session session;
+                if (dataObjectDeserializer.getObject().isPresent()) {
+                    session = (Session) dataObjectDeserializer.getObject().get();
+                } else {
+                    // Utilisation de deserializeUnsafe en cas de décalage de version d'API Stripe
+                    session = (Session) dataObjectDeserializer.deserializeUnsafe();
+                }
 
                 // Récupération de l'ID du paiement depuis les Metadata
                 String paymentIdStr = session.getMetadata().get("paymentId");
@@ -89,7 +94,14 @@ public class WebhookController {
                 }
 
                 // 3. Notifier le locataire par email avec la quittance en pièce jointe
-                notificationService.notifierPaiementConfirme(payment, quittancePdf);
+                // ✅ On extrait les champs primitifs avant d'appeler @Async pour éviter une LazyInitializationException
+                String email = payment.getLocataire().getEmail();
+                String prenom = payment.getLocataire().getFirstName();
+                java.math.BigDecimal montant = payment.getMontantTotal();
+                java.time.LocalDate moisConcerne = payment.getMoisConcerne();
+                String refPaiement = payment.getReference();
+                
+                notificationService.notifierPaiementConfirme(email, prenom, montant, moisConcerne, refPaiement, quittancePdf);
 
             } catch (Exception e) {
                 log.error("🔴 Erreur traitement webhook checkout.session.completed: {}", e.getMessage(), e);

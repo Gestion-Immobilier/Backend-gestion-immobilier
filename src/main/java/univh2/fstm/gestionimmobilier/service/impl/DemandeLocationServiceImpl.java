@@ -148,8 +148,13 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
 
         log.info("✅ Demande acceptée avec succès");
 
+        // ✅ Extraire les données avant l'appel asynchrone pour éviter les LazyInitializationException
+        String email = demandeMiseAJour.getLocataire().getEmail();
+        String prenom = demandeMiseAJour.getLocataire().getFirstName();
+        String refBien = demandeMiseAJour.getBien().getReference();
+
         // ✅ Notifier le locataire par email (asynchrone — ne bloque pas la réponse)
-        notificationService.notifierDemandeAcceptee(demandeMiseAJour);
+        notificationService.notifierDemandeAcceptee(email, prenom, refBien);
 
         return demandeMapper.toResponseDto(demandeMiseAJour);
     }
@@ -180,8 +185,14 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
 
         log.info("❌ Demande refusée avec succès");
 
+        // ✅ Extraire les données avant l'appel asynchrone pour éviter les LazyInitializationException
+        String email = demandeMiseAJour.getLocataire().getEmail();
+        String prenom = demandeMiseAJour.getLocataire().getFirstName();
+        String refBien = demandeMiseAJour.getBien().getReference();
+        String motif = demandeMiseAJour.getMotifRefus();
+
         // ✅ Notifier le locataire par email (asynchrone — ne bloque pas la réponse)
-        notificationService.notifierDemandeRefusee(demandeMiseAJour);
+        notificationService.notifierDemandeRefusee(email, prenom, refBien, motif);
 
         return demandeMapper.toResponseDto(demandeMiseAJour);
     }
