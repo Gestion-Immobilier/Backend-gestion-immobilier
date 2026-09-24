@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Secrets — NE JAMAIS COMMITER ###
+secrets.yml
