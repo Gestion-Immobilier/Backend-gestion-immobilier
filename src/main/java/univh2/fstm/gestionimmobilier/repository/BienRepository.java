@@ -77,4 +77,41 @@ public interface BienRepository extends JpaRepository<Bien, Long> {
 
     List<Bien> findByProprietaireId(Long proprietaireId);
     long countByProprietaireId(Long proprietaireId);
+
+    // ================== RECHERCHES SPATIALES POSTGIS ================== //
+
+    @Query(value = """
+        SELECT * FROM bien b
+        WHERE b.statut_validation = 'VALIDE' 
+        AND b.statut = 'DISPONIBLE'
+        AND ST_DWithin(
+            b.localisation::geography,
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+            :rayonMetres
+        )
+        ORDER BY ST_Distance(
+            b.localisation::geography,
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
+        ) ASC
+        """, nativeQuery = true)
+    List<Bien> findBiensDansRayon(
+        @Param("lat") double latitude,
+        @Param("lon") double longitude,
+        @Param("rayonMetres") double rayonMetres
+    );
+
+    @Query(value = """
+        SELECT * FROM bien b
+        WHERE b.statut_validation = 'VALIDE'
+        AND ST_Within(
+            b.localisation,
+            ST_MakeEnvelope(:lonMin, :latMin, :lonMax, :latMax, 4326)
+        )
+        """, nativeQuery = true)
+    List<Bien> findBiensDansZone(
+        @Param("lonMin") double lonMin,
+        @Param("latMin") double latMin,
+        @Param("lonMax") double lonMax,
+        @Param("latMax") double latMax
+    );
 }

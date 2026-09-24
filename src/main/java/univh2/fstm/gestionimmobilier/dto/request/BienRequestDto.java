@@ -78,6 +78,10 @@ public class BienRequestDto extends FileDto {
 
     private Boolean ascenseur;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @NotNull(message = "Le propriétaire est obligatoire")
-     private Long proprietaireId;
+    private Long proprietaireId;
 }

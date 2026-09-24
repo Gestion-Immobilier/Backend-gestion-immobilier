@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-3.4-alpine
     container_name: gestion-immobilier-db
     environment:
       POSTGRES_DB: PlatformeImmobiliere
@@ -13,11 +13,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: gestion-immobilier-minio
+    command: server /data --console-address ":9090"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - minio_data:/data
+
   backend:
     image: immobilier-app
     container_name: gestion-immobilier-backend
     depends_on:
       - postgres
+      - minio
     ports:
       - "8000:8000"
     environment:
@@ -27,3 +41,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

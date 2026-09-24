@@ -57,9 +57,9 @@ public class BienController {
             @ApiResponse(responseCode = "400", description = "Données invalides")
     })
     public ResponseEntity<BienResponseDto> creerBien(@Parameter(description = "Données du bien au format JSON", required = true)
-                                                         @RequestParam("bien") String bienJson,
+                                                         @RequestPart("bien") String bienJson,
                                                      @Parameter(description = "Photos du bien", required = false)
-                                                         @RequestParam("photos") List<MultipartFile> photos){
+                                                         @RequestPart(value = "photos", required = false) List<MultipartFile> photos){
         log.info("POST /api/v1/biens - Creation d'un bien");
         try {
             // Désérialiser le JSON
@@ -159,9 +159,9 @@ public class BienController {
     public ResponseEntity<BienResponseDto> updateBien(@Parameter(description = "ID du bien à mettre à jour", required = true)
                                                           @PathVariable Long id,
                                                       @Parameter(description = "Données du bien au format JSON", required = true)
-                                                          @RequestParam("bien") String bienJson,
+                                                          @RequestPart("bien") String bienJson,
                                                       @Parameter(description = "Photos à ajouter au bien", required = false)
-                                                          @RequestParam(value = "photos", required = false) List<MultipartFile> photos) {
+                                                          @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
 
         log.info("📥 PUT /api/v1/biens/{}", id);
         try {
@@ -406,9 +406,32 @@ public class BienController {
 
 
 
+    // ================== RECHERCHES SPATIALES POSTGIS ================== //
 
+    @GetMapping("/recherche/proximite")
+    @Operation(summary = "Rechercher des biens dans un rayon (PostGIS)", 
+               description = "Cherche les biens valides et disponibles autour d'un point GPS.")
+    public ResponseEntity<List<BienResponseDto>> rechercherProximite(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(defaultValue = "5") Double rayonKm) {
 
+        log.info("📥 GET /api/v1/biens/recherche/proximite?lat={}&lon={}&rayonKm={}", latitude, longitude, rayonKm);
+        List<BienResponseDto> biens = bienService.rechercherBiensProches(latitude, longitude, rayonKm);
+        return ResponseEntity.ok(biens);
+    }
 
+    @GetMapping("/recherche/zone")
+    @Operation(summary = "Rechercher des biens dans une zone (Bounding Box PostGIS)", 
+               description = "Cherche les biens valides visibles sur une portion de carte.")
+    public ResponseEntity<List<BienResponseDto>> rechercherDansZone(
+            @RequestParam Double latMin, 
+            @RequestParam Double lonMin,
+            @RequestParam Double latMax, 
+            @RequestParam Double lonMax) {
 
-
+        log.info("📥 GET /api/v1/biens/recherche/zone?latMin={}&lonMin={}&latMax={}&lonMax={}", latMin, lonMin, latMax, lonMax);
+        List<BienResponseDto> biens = bienService.rechercherBiensDansZone(latMin, lonMin, latMax, lonMax);
+        return ResponseEntity.ok(biens);
+    }
 }

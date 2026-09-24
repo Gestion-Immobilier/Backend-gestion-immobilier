@@ -61,6 +61,9 @@ public class BienResponseDto {
 
     private Boolean ascenseur;
 
+    private Double latitude;
+    private Double longitude;
+
     private Long proprietaireId;
     private String proprietaireNom;
     private String proprietaireEmail;

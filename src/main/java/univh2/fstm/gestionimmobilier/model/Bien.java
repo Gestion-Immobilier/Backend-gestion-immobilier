@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.locationtech.jts.geom.Point;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -118,4 +119,26 @@ public class Bien extends FileEntity{
     @JoinColumn(name = "proprietaire_id", nullable = false)
     @JsonIgnore
     private Personne proprietaire;
+
+    // ===== Géolocalisation PostGIS =====
+    @Column(name = "localisation", columnDefinition = "geometry(Point,4326)")
+    @JsonIgnore
+    private Point localisation;
+
+    /**
+     * Latitude extraite du Point PostGIS (Y en JTS).
+     * @Transient = non mappé en colonne, calculé à la volée pour le DTO.
+     */
+    @Transient
+    public Double getLatitude() {
+        return localisation != null ? localisation.getY() : null;
+    }
+
+    /**
+     * Longitude extraite du Point PostGIS (X en JTS).
+     */
+    @Transient
+    public Double getLongitude() {
+        return localisation != null ? localisation.getX() : null;
+    }
 }

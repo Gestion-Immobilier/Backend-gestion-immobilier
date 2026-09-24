@@ -18,6 +18,8 @@ public interface BienMapper {
     @Mapping(target = "proprietaireId", source = "proprietaire.id")
     @Mapping(target = "proprietaireNom", expression = "java(getProprietaireNom(bien))")
     @Mapping(target = "proprietaireEmail", source = "proprietaire.email")
+    @Mapping(target = "latitude", expression = "java(bien.getLatitude())")
+    @Mapping(target = "longitude", expression = "java(bien.getLongitude())")
     BienResponseDto toResponseDto(Bien bien);
     List<BienResponseDto> toResponseDto(List<Bien> biens);
     @Mapping(target = "id", ignore = true)

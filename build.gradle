@@ -45,6 +45,10 @@ dependencies {
     // Rate Limiting
     implementation 'com.bucket4j:bucket4j-core:8.10.1'
 
+    // PostGIS — Géolocalisation spatiale
+    implementation 'org.hibernate.orm:hibernate-spatial:6.4.4.Final'
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
+
     // Stripe — Paiement en ligne
     implementation 'com.stripe:stripe-java:24.16.0'
 

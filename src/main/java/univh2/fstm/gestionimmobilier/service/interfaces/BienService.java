@@ -60,4 +60,8 @@ public interface BienService {
     );
 
     long compterBiensParStatutValidation(StatutValidation statutValidation);
+
+    // Recherche spatiale
+    List<BienResponseDto> rechercherBiensProches(double lat, double lon, double rayonKm);
+    List<BienResponseDto> rechercherBiensDansZone(double latMin, double lonMin, double latMax, double lonMax);
 }

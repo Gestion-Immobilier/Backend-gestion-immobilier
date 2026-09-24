@@ -35,6 +35,8 @@ public class BienServiceImpl implements BienService {
     private final BienMapper bienMapper;
     private final ReferenceGenerator referenceGenerator;
     private final MinioService minioService;
+    private final GeocodingService geocodingService;
+    private final univh2.fstm.gestionimmobilier.utils.GeoFactory geoFactory;
 
     @Value("${minio.bucket-bien}")
     private String bucketBien;
@@ -101,6 +103,24 @@ public class BienServiceImpl implements BienService {
             bien.setPhotos(photoUrls);
         }
         // et enfin on save le bien
+
+        // ===== Géolocalisation PostGIS =====
+        if (requestDto.getLatitude() != null && requestDto.getLongitude() != null) {
+            // 1. Saisie manuelle prioritaire
+            bien.setLocalisation(geoFactory.creerPoint(requestDto.getLatitude(), requestDto.getLongitude()));
+            log.info("📍 Coordonnées manuelles appliquées : {}, {}", requestDto.getLatitude(), requestDto.getLongitude());
+        } else {
+            // 2. Géocodage automatique
+            geocodingService.geocoderAdresse(bien.getAdresse(), bien.getVille(), bien.getCodePostal())
+                .ifPresentOrElse(
+                    coords -> {
+                        bien.setLocalisation(geoFactory.creerPoint(coords[0], coords[1]));
+                        log.info("📍 Géocodage réussi : {}, {}", coords[0], coords[1]);
+                    },
+                    () -> log.warn("⚠️ Impossible de géocoder l'adresse: {}", bien.getAdresse())
+                );
+        }
+
         Bien bienSauvegarde = bienRepository.save(bien);
 
         log.info("Bien créé avec succès - Référence: {}", reference);
@@ -367,5 +387,22 @@ public class BienServiceImpl implements BienService {
     public long compterBiensParStatutValidation(StatutValidation StatutValidation) {
 
         return bienRepository.countByStatutValidation(StatutValidation);
+    }
+
+    // ================== RECHERCHES SPATIALES POSTGIS ================== //
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BienResponseDto> rechercherBiensProches(double lat, double lon, double rayonKm) {
+        double rayonMetres = rayonKm * 1000;
+        List<Bien> biens = bienRepository.findBiensDansRayon(lat, lon, rayonMetres);
+        return bienMapper.toResponseDto(biens);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BienResponseDto> rechercherBiensDansZone(double latMin, double lonMin, double latMax, double lonMax) {
+        List<Bien> biens = bienRepository.findBiensDansZone(lonMin, latMin, lonMax, latMax);
+        return bienMapper.toResponseDto(biens);
     }
 }
